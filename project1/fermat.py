@@ -23,11 +23,11 @@ def mod_exp(x: int, y: int, N: int) -> int:  # time complexity is O(n^2* m) (see
 
 
 def fprobability(k: int) -> float: # look at the textbook for this one
-    return (1/(pow(2, k))) 
+    return (1/(2 ** k)) 
 
 
 def mprobability(k: int) -> float: # even works for carmicheal numbers
-    return (3/pow(4, k))  # look at the text book. 
+    return (3/ (3 ** k))  # look at the text book. 
 
 
 # fermats test for primes, given prime number N, and the number of iterations run (K)
