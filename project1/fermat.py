@@ -21,28 +21,28 @@ def mod_exp(x: int, y: int, N: int) -> int:  # time complexity is O(n^3) in term
         return (x * (z*z)) % N
 
 
-# You will need to implement this function and change the return value.
-def fprobability(k: int) -> float: # never tested but pretty sure
-    return (1/(pow(2, k)))
+def fprobability(k: int) -> float: # look at the textbook for this one
+    return (1/(2 ** k)) 
 
 
-# You will need to implement this function and change the return value.
-def mprobability(k: int) -> float:  # never tested but pretty sure
-    return (3/pow(4, k))
+def mprobability(k: int) -> float: # even works for carmicheal numbers
+    return (3/ (3 ** k))  # look at the text book. 
 
 
 # fermats test for primes, given prime number N, and the number of iterations run (K)
-def fermat(N: int, k: int) -> str:  # should have a running time of O(n^4)
-    for i in range(k):
+def fermat(N: int, k: int) -> str: # we have K recursion calls
+    for i in range(k): # repeat K times
         a = random.randint(1, N-1) # pick a rand int (constant time)
-        if (mod_exp(a, N-1, N)) != 1: # run mod_exp (o(n^3)
+        if (mod_exp(a, N-1, N)) != 1: # O(n^3) here
             return "composite"
     return "prime"
+                                    # given K recursion calls * O(n^3), assuming they are of similar length, 
+                                    # our total time is O(n^4)
 
 
 # miller rabbin test for primes given a number N and the number of iterations to run K
 def miller_rabin(N: int, k: int) -> str: # woohoo! I am a genius! I got it working!
-    for i in range(k):
+    for i in range(k): # run K times 
         a = random.randint(1, N-1)  # pick a random number
         result = mod_exp(a, N-1, N)  # calculate the result with modular exponentiation
         if result == 1:  # if we start with a 1 we have to keep checking down the list
@@ -54,12 +54,12 @@ def miller_rabin(N: int, k: int) -> str: # woohoo! I am a genius! I got it worki
 
 
 def miller_rabin_help(a, exp, mod): # a is our term, N is our exponent and mod is our %
-    result = mod_exp(a, exp, mod) # calculate the result
+    result = mod_exp(a, exp, mod) # calculate the result (O(n^3))
     if result == mod-1:  # mod -1, we can break cause its prime
         return "probably prime"
     if result == 1:  # continue the chain for as long as we can
         if (exp//2) > 1:  # make sure we can still go down and sqrt the exponent
-            miller_rabin_help(a, exp//2, mod)
+            miller_rabin_help(a, exp//2, mod) # calls itself log(exp) times
         else:  # we can't prove its prime but we gotta return something anyway
             return "probably prime"  # sequence consisted of all ones, break
     else:
