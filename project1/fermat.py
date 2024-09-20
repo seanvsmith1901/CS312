@@ -7,26 +7,26 @@ import math
 def prime_test(N: int, k: int) -> tuple[str, str]:
     return fermat(N, k), miller_rabin(N, k)
 
-# add a commment to see if this is working
+# Hey! For all the time and space stuff, see the bottom of the code or the drive link I posted there :)
 
 # You will need to implement this function and change the return value.
 # Takes in x and N, and an integer component y, and returns x^y mod N
-def mod_exp(x: int, y: int, N: int) -> int:  # time complexity is O(n^3) in terms of bits and O(log(n))
+def mod_exp(x: int, y: int, N: int) -> int:  # so we have x which is our base, y is our power and N which is our modulus
     if y == 0: # constant time
         return 1
-    z = mod_exp(x, (y//2), N)  # USE INTEGER DIVISION NOT FLOOR
+    z = mod_exp(x, (y//2), N)  # USE INTEGER DIVISION NOT FLOOR, this is just going down the exponent chain until we can't no more
     if (y % 2) == 0:  # if even
-        return (z*z) % N
+        return (z*z) % N # TA's told me this would be faster lol
     else:  # if odd
         return (x * (z*z)) % N
 
 
-def fprobability(k: int) -> float: # look at the textbook for this one
+def fprobability(k: int) -> float: # look at the textbook for this one or the write up
     return (1/(2 ** k)) 
 
 
-def mprobability(k: int) -> float: # even works for carmicheal numbers
-    return (3/ (3 ** k))  # look at the text book. 
+def mprobability(k: int) -> float: # even works for carmicheal numbers so thats cool
+    return (3/ (4 ** k))  # look at the text book. 
 
 
 # fermats test for primes, given prime number N, and the number of iterations run (K)
@@ -36,8 +36,6 @@ def fermat(N: int, k: int) -> str: # we have K recursion calls
         if (mod_exp(a, N-1, N)) != 1: # O(n^3) here
             return "composite"
     return "prime"
-                                    # given K recursion calls * O(n^3), assuming they are of similar length, 
-                                    # our total time is O(n^4)
 
 
 # miller rabbin test for primes given a number N and the number of iterations to run K
