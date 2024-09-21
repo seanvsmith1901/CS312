@@ -3,7 +3,10 @@ import sys
 
 import fermat
 # This may come in handy...
-from fermat import miller_rabin
+from fermat import miller_rabin # ooh I was wondering why that worked lol
+
+# Hey! For all the time and space stuff, see the bottom of the code or the drive link I posted there :)
+
 
 # If you use a recursive implementation of `mod_exp` or extended-euclid,
 # you recurse once for every bit in the number.
@@ -20,18 +23,18 @@ primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67
 
 # Implement this function
 def ext_euclid(a: int, b: int) -> tuple[int, int, int]:
-    if b == 0:
+    if b == 0: # base case
         return (1, 0, a) # a SHOULD be one for extended cases, if a isn't one then we try again
-    (x1, y1, d) = ext_euclid(b, a % b) # magic
+    (x1, y1, d) = ext_euclid(b, a % b) # magic. IDK how else to explain it
     return (y1, (x1 - ((a//b)*y1)), d) # d is the GCD so we want that
 
 
 
 # Implement this function
 def generate_large_prime(bits=512) -> int:
-    myPrime = 6
-    k = 20
-    while fermat.miller_rabin(myPrime, k) != "prime":
+    myPrime = 6 # just a random composite number to start with
+    k = 20 # specified in the project specs
+    while fermat.miller_rabin(myPrime, k) != "prime": # if not prime we try until we get a prime
         myPrime = random.getrandbits(bits)
 
     return myPrime # Guaranteed random prime number obtained through fair dice roll
@@ -40,22 +43,19 @@ def generate_large_prime(bits=512) -> int:
 # Implement this function
 def generate_key_pairs(bits: int) -> tuple[int, int, int]:
 
-    p = generate_large_prime(bits)
-    q = generate_large_prime(bits)
-    N = p * q
+    p = generate_large_prime(bits) # run it once
+    q = generate_large_prime(bits) # a function so nice, you run it twice
+    N = p * q # specificed by the algorithm
 
-    pq = (p-1) * (q-1) # just to save space and make it easier to read
-
-    d = 0
-    index = 0
-    while d != 1:
+    d = 0 # so we enter the loop
+    index = 0 # gotta start somewhere
+    while d != 1: # while its not a relative prime
         (y1, x1, d) = ext_euclid((p-1) * (q-1), primes[index])
-        index += 1
+        index += 1 # zoom through the list
 
-    e = primes[index-1]  # yeah its funky don't worry about it
+    e = primes[index-1]  # yeah its funky don't worry about it, we need to move back an index
 
-    # find D
-
+    # find D with euclids extended
     (r1, d, r3) = ext_euclid((p-1) * (q-1), e)
 
     d = d % ((p-1) * (q-1))  # this is VERY imporant, he NEEDS to be positive lol otherwise he will recurse into the floor
@@ -70,10 +70,11 @@ def generate_key_pairs(bits: int) -> tuple[int, int, int]:
 # https://docs.google.com/document/d/15ysNv9G759zuxsQsH30g152rZIbs5SVbS4m-p-GV5tQ/edit?usp=sharing
 #
 #
-#Ext_euclid: This one has some magic going on, but the biggest thing is its recursive call
-#We know that when we take our a % b, we can’t be any larger than ½ of the size, so we are taking a log of b.
-#We are going to say that a and b are similarly sized inputs, and as such we can say that the big o of this function is O(log(n))
-#In terms of space complexity, the only thing that is happening here is once again, the recursive call. So, our space complexity is going to be the same as our time complexity, which is to say, O(log(n))
+# Ext_euclid: This one has some magic going on, but the biggest thing is its recursive call
+# We know that when we take our a % b, we can’t be any larger than ½ of the size, so we are taking a log of b.
+# We are going to say that a and b are similarly sized inputs, and as such we can say that the big o of this function is O(n), where n is defined as the log(max(a,b))
+# we then need to take into account the divison operation, which is an n^2 operation in relation to bits, which gives our function an overall running time of O(n^3)
+# In terms of space complexity, the only thing that is happening here is once again, the recursive call. So, our space complexity is going to be the same as our time complexity, which is to say, O(log(n))
 #
 #
 #Generate_Large_Prime: This one has two things going on in it. First, is that I call miller_rabin (I tried both) and based on my last assumption we can say that miller_rabbin is O(n^4).
@@ -87,7 +88,7 @@ def generate_key_pairs(bits: int) -> tuple[int, int, int]:
 # We then store pq, which is n^2 given p and q, (much slower than checking if its prime)
 # We then calculate d, and if we assume euclid's extent is never larger than Olog(n), we can add that in. This gets us e and we store it. We run ext_euclids again for another O(log(n)) and then make sure d is positive, (O(1)) and then return those pairs.
 # So our big O looks like
-# O(n^4) + n^2 + Olog(n) + O(log(n)) + O(1)
+# O(n^4) + n^2 + O(n) + O(n) + O(1)
 # So our time complexity is O(n^4), almost entirely just from checking to make sure that our numbers are prime. The rest is easy potatoes.
 # In terms of space complexity, there’s not a lot going on here.
 # The only thing to watch out for here is once again, generating random primes, it can be O(n) when using get_rand_bits(where we have to randomize each bit in N size).
