@@ -11,7 +11,7 @@ def prime_test(N: int, k: int) -> tuple[str, str]:
 
 # You will need to implement this function and change the return value.
 # Takes in x and N, and an integer component y, and returns x^y mod N
-def mod_exp(x: int, y: int, N: int) -> int:  # time complexity is O(n^3) in terms of bits and O(log(n))
+def mod_exp(x: int, y: int, N: int) -> int:  # time complexity is O(n^3) in terms of bits and
     if y == 0: # constant time
         return 1
     z = mod_exp(x, (y//2), N)  # USE INTEGER DIVISION NOT FLOOR
@@ -26,12 +26,12 @@ def fprobability(k: int) -> float: # look at the textbook for this one
 
 
 def mprobability(k: int) -> float: # even works for carmicheal numbers
-    return (3/ (3 ** k))  # look at the text book. 
+    return (3/ (4 ** k))  # look at the text book.
 
 
 # fermats test for primes, given prime number N, and the number of iterations run (K)
 def fermat(N: int, k: int) -> str: # we have K recursion calls
-    for i in range(k): # repeat K times
+    for i in range(k):  # repeat K times
         a = random.randint(1, N-1) # pick a rand int (constant time)
         if (mod_exp(a, N-1, N)) != 1: # O(n^3) here
             return "composite"
