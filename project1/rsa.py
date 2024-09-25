@@ -73,16 +73,15 @@ def generate_key_pairs(bits: int) -> tuple[int, int, int]:
 # Ext_euclid: This one has some magic going on, but the biggest thing is its recursive call
 # We know that when we take our a % b, we can’t be any larger than ½ of the size, so we are taking a log of b.
 # We are going to say that a and b are similarly sized inputs, and as such we can say that the big o of this function is O(n), where n is defined as the log(max(a,b))
+# we then need to take into account the divison operation, which is an n^2 operation in relation to bits, which gives our function an overall running time of O(n^3)
 # In terms of space complexity, the only thing that is happening here is once again, the recursive call. So, our space complexity is going to be the same as our time complexity, which is to say, O(log(n))
 #
 #
-# Generate_Large_Prime: This one has two things going on in it. First, is that I call miller_rabin (I tried both) and based on my last assumption we can say that miller_rabbin is O(n^4).
-# We call this until we get a random number. This is going to require us to use the prime number theorem. Given a random integer from 0-N, the probability of being a prime is approx 1 / ln(N).
-# If we assume that our N is a constant 512 bits, then this reduces to O(1) time. If, however, we assume that this is NOT the case, then we can saw that we will need to run 1 / ln(N) times.
-# This means that we take O(n^4) * 1/ln(n), which still simplifies out to O(n^4) runtime.
-# Time: O(n^4) (given that K is a constant and the prime number theorem)
-# In terms of space, it's actually just O(1) because we are only declaring 4 variables and checking them. Large variables, but never larger than 512 bits. If the bits were not constant, then we would be O(n) for space.
-# Space: O(1) for 512 bits, O(n) for scaling input.
+#Generate_Large_Prime: This one has two things going on in it. First, is that I call miller_rabin (I tried both) and based on my last assumption we can say that miller_rabbin is O(n^4).
+#We call this until we get a random number. This is going to require us to use the prime number theorem. Given a random integer from 0-N, the probability of being a prime is approx 1 / ln(N).
+#If we assume that our N is a constant 512 bits, then this reduces to O(1) time. If, however, we assume that this is NOT the case, then we can see that we will need to run 1 / ln(N) times.
+#This means that we take O(n^4) * 1/ln(n), which still simplifies out to O(n^4) runtime.
+#
 #
 #
 # Generate_Key_Pairs: this one generates a large prime, which is O(n^4) and does this twice.

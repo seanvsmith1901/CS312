@@ -31,7 +31,7 @@ def mprobability(k: int) -> float: # even works for carmicheal numbers so thats 
 
 # fermats test for primes, given prime number N, and the number of iterations run (K)
 def fermat(N: int, k: int) -> str: # we have K recursion calls
-    for i in range(k): # repeat K times
+    for i in range(k):  # repeat K times
         a = random.randint(1, N-1) # pick a rand int (constant time)
         if (mod_exp(a, N-1, N)) != 1: # O(n^3) here
             return "composite"
