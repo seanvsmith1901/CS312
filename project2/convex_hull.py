@@ -40,13 +40,18 @@ def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]
             # make that the head
 
     elif len(list) == 3:
+        pass # theres a whole LIST of things that need to happen here lol
 
 
 
     return []
 
 
-def median(S): # s is teh list, just copying the pseducode given on the slides
+def median(S): # s is teh list,
+
+
+
+    # just copying the pseducode given on the slides
     return selection(S, len(S)/2)
 
 
