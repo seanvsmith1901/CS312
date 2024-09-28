@@ -15,7 +15,7 @@ def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]
 
     pointsButAsActualPoints = makePoints(points) # turns our list of points into a point object with a head and whatnot
     new_hull = Hull.Hull(pointsButAsActualPoints)
-    new_hull = create_hull(new_hull)
+    new_hull = create_hull(new_hull) # I let the AI generate the getItem function IDK why it watned it
     new_list = new_hull.create_list()
     return new_list
 
@@ -27,17 +27,17 @@ def create_hull(hull):
     rightList = []
 
     for point in hull.__createList__(): # should return the actual list
-        if point[0] > our_median[0]:
+        if point.returnX > our_median.returnX:
             leftList.append(point)
         else:
             rightList.append(point)
 
     if len(leftList) > 3:
-        newHull = Hull(leftList)
+        newHull = Hull.Hull(leftList)
         create_hull(newHull)
 
     if len(rightList) > 3:
-        newHull = Hull(leftList)
+        newHull = Hull.Hull(leftList)
         create_hull(newHull)
 
     left_hull = formalizeHull(leftList)
@@ -75,7 +75,7 @@ def formalizeHull(listOfPoints):
         elif((listOfPoints[1].returnX < listOfPoints[2].returnX) and (listOfPoints[1].returnX < listOfPoints[0].returnX)):
             leftMost = listOfPoints[1]
         else:
-            lefMost = listOfPoints[2]
+            leftMost = listOfPoints[2]
         if (listOfPoints[0].returnX > listOfPoints[1].returnX) and listOfPoints[0].returnX > listOfPoints[2].returnX:  # if our first point is more left than second point
             rightMost = listOfPoints[0][0]
         elif ((listOfPoints[1].returnX > listOfPoints[2].returnX) and (listOfPoints[1].returnX > listOfPoints[0].returnX)):
@@ -102,6 +102,8 @@ def formalizeHull(listOfPoints):
             rightMost.setCC(leftMost)
             rightMost.setCL(middle)
 
+        new_hull = Hull.Hull(leftMost)
+
 
 
     if len(listOfPoints) == 2:
@@ -111,14 +113,14 @@ def formalizeHull(listOfPoints):
         listOfPoints[0].setCC(listOfPoints[1])
         listOfPoints[1].setCC(listOfPoints[0])
 
-        new_hull = Hull(listOfPoints[1])
+        new_hull = Hull.Hull(listOfPoints[0])
 
 
     if len(listOfPoints) == 1:
         listOfPoints[0].setCC(listOfPoints[0])
         listOfPoints[0].setCL(listOfPoints[0])
 
-        new_hull = Hull(listOfPoints[0]) # create a hul from this point
+        new_hull = Hull.Hull(listOfPoints[0]) # create a hul from this point
 
     return new_hull
 
@@ -164,11 +166,11 @@ def find_upper_tangent(L,R): # returns line L,R where R is now clockwise of L
         Temp = (L,R)
         currSlopeL = slope(L, R)
         currSlopeR = slope(L, R)
-        while slope(L.returnCC, R) > currSlopeL:
+        while slope(L.returnCC, R) < currSlopeL:
             L = L.returnCC
             currSlopeL = slope(L, R)
             done = 0
-        while slope(L, R.returnCC) < currSlopeR:
+        while slope(L, R.returnCL) > currSlopeR:
             R = R.returnCL
             currSlopeR = slope(L,R)
             done = 0
@@ -185,11 +187,11 @@ def find_lower_tangent(L,R):
     while not done:
         done = 1
         temp = (L,R)
-        while slope(L.returnCl, R) < currSlopeL:
+        while slope(L.returnCL, R) > currSlopeL:
             L = L.returnCl
             currSlopeL = slope(L,R)
             done = 0
-        while slope(L, R.returnCC) > currSlopeR:
+        while slope(L, R.returnCC) < currSlopeR:
             R = R.returnCC
             currSlopeR = slope(L,R)
             done = 0

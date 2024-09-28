@@ -7,7 +7,7 @@ class Point:
     __cc = None
 
 
-    def __init__(self, cc, cl, x,y):
+    def __init__(self, x, y, cl, cc):
         self.__x = x
         self.__y = y
         self.__cl = cl
@@ -40,4 +40,7 @@ class Point:
 
     def unCheck(self):
         self.__checked = False
+
+    def returnChecked(self):
+        return self.__checked
 
