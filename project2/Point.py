@@ -12,9 +12,7 @@ class Point:
         self.__y = y
         self.__cl = cl
         self.__cc = cc
-
-    def returnCC(self):
-        return self.__cc
+        self.__checked = False
 
     def returnX(self):
         return self.__x
@@ -23,10 +21,23 @@ class Point:
         return self.__y
 
     def returnCL(self):
-
-        
         return self.__cl
+
+    def returnCC(self):
+        return self.__cc
+
+    def setCC(self, new_point):
+        self.__cc = new_point
+
+    def setCL(self, new_point):
+        self.__cl = new_point
 
     def returnPoint(self):
         return [self.returnX(), self.returnY()]
+
+    def check(self):
+        self.__checked = True
+
+    def unCheck(self):
+        self.__checked = False
 

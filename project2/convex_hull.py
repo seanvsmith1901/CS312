@@ -1,6 +1,11 @@
 # Uncomment this line to import some functions that can help
 # you debug your algorithm
 # from plotting import draw_line, draw_hull, circle_point
+#from unittest.mock import right
+
+from venv import create
+
+# once I figure out constructors its OVER for you fetchers
 
 import Point
 import Hull
@@ -9,7 +14,7 @@ import random
 def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
 
     pointsButAsActualPoints = makePoints(points) # turns our list of points into a point object with a head and whatnot
-    new_hull = Hull(pointsButAsActualPoints)
+    new_hull = Hull.Hull(pointsButAsActualPoints)
     new_hull = create_hull(new_hull)
     new_list = new_hull.create_list()
     return new_list
@@ -21,7 +26,7 @@ def create_hull(hull):
     leftList = []
     rightList = []
 
-    for point in points:
+    for point in hull.__createList__(): # should return the actual list
         if point[0] > our_median[0]:
             leftList.append(point)
         else:
@@ -35,32 +40,87 @@ def create_hull(hull):
         newHull = Hull(leftList)
         create_hull(newHull)
 
-    left_hull = formalizeHull(left_list)
-    right_hull = formalizeHull(right_list)
+    left_hull = formalizeHull(leftList)
+    right_hull = formalizeHull(rightList)
 
     return joinHull(left_hull, right_hull)
 
 
 
-
-
-    return []
-
-
 def joinHull(leftHull, rightHull):
-    temp1 = find_upper_tangent(leftHull, rightHull)
-    temp2 = find_lower_tangent(leftHull, rightHull)
-    # do da shimmy
-    # create a new hull from these two and make a hull from that point adn all its pointers
-    return temp1
+    L1,R1 = find_upper_tangent(leftHull, rightHull)
+    L1.setCL(R1)
+    R1.setCC(L1)
+
+    L2,R2 = find_lower_tangent(leftHull, rightHull)
+    L2.setCC(R2)
+    R2.setCL(L2)
+
+    new_hull = Hull(L1) # should create a new hull from that list
+
+    return new_hull
+
 
 def formalizeHull(listOfPoints):
-    if len(listOfPoints) == 3:
-        pass
+    new_hull = Hull(listOfPoints)
+
+    if len(listOfPoints) == 3: # this is the one where we gotta find the leftMost and rightmost lol
+        # find leftmost and rightmost and then detremrine if mid is above or below
+        leftMost = listOfPoints[0]
+        rightMost = listOfPoints[1]
+        middle = listOfPoints[2]
+
+        if(listOfPoints[0].returnX < listOfPoints[1].returnX) and listOfPoints[0].returnX < listOfPoints[2].returnX:# if our first point is more left than second point
+            leftMost = listOfPoints[0][0]
+        elif((listOfPoints[1].returnX < listOfPoints[2].returnX) and (listOfPoints[1].returnX < listOfPoints[0].returnX)):
+            leftMost = listOfPoints[1]
+        else:
+            lefMost = listOfPoints[2]
+        if (listOfPoints[0].returnX > listOfPoints[1].returnX) and listOfPoints[0].returnX > listOfPoints[2].returnX:  # if our first point is more left than second point
+            rightMost = listOfPoints[0][0]
+        elif ((listOfPoints[1].returnX > listOfPoints[2].returnX) and (listOfPoints[1].returnX > listOfPoints[0].returnX)):
+            rightMost = listOfPoints[1]
+        else:
+            rightMost = listOfPoints[2]
+
+        newListOfPoints = listOfPoints.remove(leftMost, rightMost)
+        middle = newListOfPoints[0]
+
+        if middle.returnY > leftMost.returnY: # edge case 1, with a upwards facing triangle
+            leftMost.setCL(middle)
+            leftMost.setCC(rightMost)
+            middle.setCC(leftMost)
+            middle.SetCL(rightMost)
+            rightMost.setCL(leftMost)
+            rightMost.setCC(middle)
+
+        else: # edge case 2, with a downwards facing triangle
+            leftMost.setCC(middle)
+            leftMost.setCL(rightMost)
+            middle.setCL(leftMost)
+            middle.SetCC(rightMost)
+            rightMost.setCC(leftMost)
+            rightMost.setCL(middle)
+
+
+
     if len(listOfPoints) == 2:
-        pass
+        listOfPoints[0].setCL(listOfPoints[1])
+        listOfPoints[1].setCL(listOfPoints[0])
+
+        listOfPoints[0].setCC(listOfPoints[1])
+        listOfPoints[1].setCC(listOfPoints[0])
+
+        new_hull = Hull(listOfPoints[1])
+
+
     if len(listOfPoints) == 1:
-        pass
+        listOfPoints[0].setCC(listOfPoints[0])
+        listOfPoints[0].setCL(listOfPoints[0])
+
+        new_hull = Hull(listOfPoints[0]) # create a hul from this point
+
+    return new_hull
 
 
 
@@ -111,8 +171,10 @@ def find_upper_tangent(L,R): # returns line L,R where R is now clockwise of L
         while slope(L, R.returnCC) < currSlopeR:
             R = R.returnCL
             currSlopeR = slope(L,R)
+            done = 0
 
-    return temp # these are teh points that we need to link up
+    temp = L,R
+    return temp
 
 
 def find_lower_tangent(L,R):
@@ -132,6 +194,7 @@ def find_lower_tangent(L,R):
             currSlopeR = slope(L,R)
             done = 0
 
+    temp = L,R
     return temp # once again this is the fetcher that we need
 
 
