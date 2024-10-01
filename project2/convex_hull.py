@@ -14,7 +14,7 @@ import random
 def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
     recursions = 0
     pointsButAsActualPoints = makePoints(points) # turns our list of points into a point object with a head and whatnot
-    new_hull = Hull.Hull(pointsButAsActualPoints)
+    new_hull = Hull.Hull(pointsButAsActualPoints, 1)
     new_hull = create_hull(new_hull, recursions) # I let the AI generate the getItem function IDK why it watned it
     new_list = new_hull.create_list()
     return new_list
@@ -36,12 +36,12 @@ def create_hull(hull, recursions):
             rightList.append(point)
 
     if len(leftList) > 3:
-        newHull = Hull.Hull(leftList)
-        create_hull(newHull, recursions)
+        newLeftHull = Hull.Hull(leftList, 1)
+        create_hull(newLeftHull, recursions)
 
     if len(rightList) > 3:
-        newHull = Hull.Hull(leftList)
-        create_hull(newHull, recursions)
+        newRightHull = Hull.Hull(rightList, 1)
+        create_hull(newRightHull, recursions)
 
     left_hull = formalizeHull(leftList)
     right_hull = formalizeHull(rightList)
@@ -59,13 +59,13 @@ def joinHull(leftHull, rightHull):
     L2.setCC(R2)
     R2.setCL(L2)
 
-    new_hull = Hull(L1) # should create a new hull from that list
+    new_hull = Hull.Hull(L1) # should create a new hull from that list
 
     return new_hull
 
 
 def formalizeHull(listOfPoints):
-    new_hull = Hull(listOfPoints)
+    #new_hull = Hull.Hull(listOfPoints)
 
     if len(listOfPoints) == 3: # this is the one where we gotta find the leftMost and rightmost lol
         # find leftmost and rightmost and then detremrine if mid is above or below
@@ -73,27 +73,28 @@ def formalizeHull(listOfPoints):
         rightMost = listOfPoints[1]
         middle = listOfPoints[2]
 
-        if(listOfPoints[0].returnX < listOfPoints[1].returnX) and listOfPoints[0].returnX < listOfPoints[2].returnX:# if our first point is more left than second point
-            leftMost = listOfPoints[0][0]
-        elif((listOfPoints[1].returnX < listOfPoints[2].returnX) and (listOfPoints[1].returnX < listOfPoints[0].returnX)):
+        if(listOfPoints[0].returnX() < listOfPoints[1].returnX()) and listOfPoints[0].returnX() < listOfPoints[2].returnX():# if our first point is more left than second point
+            leftMost = listOfPoints[0]
+        elif((listOfPoints[1].returnX() < listOfPoints[2].returnX()) and (listOfPoints[1].returnX() < listOfPoints[0].returnX())):
             leftMost = listOfPoints[1]
         else:
             leftMost = listOfPoints[2]
-        if (listOfPoints[0].returnX > listOfPoints[1].returnX) and listOfPoints[0].returnX > listOfPoints[2].returnX:  # if our first point is more left than second point
-            rightMost = listOfPoints[0][0]
-        elif ((listOfPoints[1].returnX > listOfPoints[2].returnX) and (listOfPoints[1].returnX > listOfPoints[0].returnX)):
+        if (listOfPoints[0].returnX() > listOfPoints[1].returnX()) and listOfPoints[0].returnX() > listOfPoints[2].returnX():  # if our first point is more left than second point
+            rightMost = listOfPoints[0]
+        elif ((listOfPoints[1].returnX() > listOfPoints[2].returnX()) and (listOfPoints[1].returnX() > listOfPoints[0].returnX())):
             rightMost = listOfPoints[1]
         else:
             rightMost = listOfPoints[2]
 
-        newListOfPoints = listOfPoints.remove(leftMost, rightMost)
-        middle = newListOfPoints[0]
+        listOfPoints.remove(leftMost)
+        listOfPoints.remove(rightMost)
+        middle = listOfPoints[0]
 
-        if middle.returnY > leftMost.returnY: # edge case 1, with a upwards facing triangle
+        if middle.returnY() > leftMost.returnY(): # edge case 1, with a upwards facing triangle
             leftMost.setCL(middle)
             leftMost.setCC(rightMost)
             middle.setCC(leftMost)
-            middle.SetCL(rightMost)
+            middle.setCL(rightMost)
             rightMost.setCL(leftMost)
             rightMost.setCC(middle)
 
@@ -101,11 +102,12 @@ def formalizeHull(listOfPoints):
             leftMost.setCC(middle)
             leftMost.setCL(rightMost)
             middle.setCL(leftMost)
-            middle.SetCC(rightMost)
+            middle.setCC(rightMost)
             rightMost.setCC(leftMost)
             rightMost.setCL(middle)
 
         new_hull = Hull.Hull(leftMost)
+        return new_hull
 
 
 
@@ -117,15 +119,16 @@ def formalizeHull(listOfPoints):
         listOfPoints[1].setCC(listOfPoints[0])
 
         new_hull = Hull.Hull(listOfPoints[0])
+        return new_hull
 
 
     if len(listOfPoints) == 1:
         listOfPoints[0].setCC(listOfPoints[0])
         listOfPoints[0].setCL(listOfPoints[0])
 
-        new_hull = Hull.Hull(listOfPoints[0]) # create a hul from this point
+        new_hull = Hull.Hull(listOfPoints[0])
+        return new_hull# create a hul from this point
 
-    return new_hull
 
 
 
@@ -206,8 +209,8 @@ def find_lower_tangent(L,R):
 
 
 def slope(L : Point,R : Point):
-    top = R.returnY - L.returnY
-    bottom = R.returnX - L.returnX
+    top = R.returnY() - L.returnY()
+    bottom = R.returnX() - L.returnX()
 
     return top / bottom
 

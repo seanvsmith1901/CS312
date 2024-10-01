@@ -4,26 +4,36 @@ class Hull: # literally just list of points but I like having it as a class :)
 
     hull = []
 
-    def __init__(self, points_list):
-        for point in points_list:
-            Point.Point(point[0], point[1], point, point)
-            self.hull.append(point)
+    def __init__(self, points_list, list = None):
+        self.hull.clear()
+        if list is not None:
 
-     # def __init__(self, point):
-     #     newPointsList = []
-     #     clockWiseStartPoint = point
-     #     counterClockWiseStartPoint = point.returnCC
-     #
-     #    while point.returnCC != None and not point.returnChecked():
-     #        point.check()
-     #        newPointsList.append(point)
-     #        point = point.returnCL
-     #
-     #
-     #    while point.returnCL != None and not point.returnChecked():
-     #        point.check()
-     #        newPointsList.append(Point)
-     #        point = point.returnCC
+            for point in points_list:
+                Point.Point(point[0], point[1], point, point)
+                self.hull.append(point)
+
+
+        else:
+            self.hull.clear()
+            point = points_list
+
+            newPointsList = []
+            clockWiseStartPoint = point
+            counterClockWiseStartPoint = point.returnCC
+
+            self.hull.append(point)
+            point.check()
+
+            while clockWiseStartPoint != None and not point.returnChecked():
+                point.check()
+                self.hull.append(point)
+                point = point.returnCL()
+
+
+            while counterClockWiseStartPoint != None and not point.returnChecked():
+                point.check()
+                self.hull.append(Point)
+                point = point.returnCC()
 
 
         # creates a new hull from the connected points and returns that hull
