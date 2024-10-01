@@ -11,12 +11,14 @@ import Point
 import Hull
 import random
 
+# what if, hear me out, hull is just a list of points. thats it. none of this class business.
+
 def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
     recursions = 0
     pointsButAsActualPoints = makePoints(points) # turns our list of points into a point object with a head and whatnot
-    new_hull = Hull.Hull(pointsButAsActualPoints, 1)
-    new_hull = create_hull(new_hull, recursions) # I let the AI generate the getItem function IDK why it watned it
-    new_list = new_hull.create_list()
+    new_hull = pointsButAsActualPoints
+    full_hull = create_hull(new_hull, recursions) # I let the AI generate the getItem function IDK why it watned it
+    new_list = new_hull
     return new_list
 
 
@@ -24,7 +26,7 @@ def create_hull(hull, recursions):
 
     recursions += 1
     print(recursions)
-    our_median = hull[median(hull)] # median returns the index of the median fetcher rather than teh actual point
+    our_median = hull.at(median(hull)) # median returns the index of the median fetcher rather than teh actual point
     leftList = []
     rightList = []
 
@@ -45,6 +47,7 @@ def create_hull(hull, recursions):
 
     left_hull = formalizeHull(leftList) # i don't think this is creating a new object and IDK why.
     right_hull = formalizeHull(rightList)
+
 
     return joinHull(left_hull, right_hull)
 
@@ -141,7 +144,7 @@ def formalizeHull(listOfPoints):
 
 def median(S): # hull!
     # just copying the pseducode given on the slides
-    return selection(S, len(S)/2)
+    return selection(S, (len(S)/2))
 
 
 def selection(S, k):
@@ -150,16 +153,16 @@ def selection(S, k):
     Sr = []
     Sv = []
     # need a random pivot v. there are better ways to pick it. I am not going to do that.
-    v = S[(random.randint(0, len(S)-1))][0]
+    v = S.at((random.randint(0, len(S)-1))).returnX()
 
     # choose a random pivot
     for i in range(len(S)):
         if S[i][0] < v: # make sure this is returning again
-            Sl.append(S[i])
+            Sl.append(S.at(i))
         if S[i][0] == v:
-            Sv.append(S[i])
+            Sv.append(S.at(i))
         if S[i][0] > v:
-            Sr.append(S[i])
+            Sr.append(S.at(i))
 
     if k < len(Sl):
         return selection(Sl, k)
@@ -219,7 +222,7 @@ def slope(L : Point,R : Point):
     top = R.returnY() - L.returnY()
     bottom = R.returnX() - L.returnX()
 
-    return top / bottom
+    return (top / bottom)
 
 def makePoints(points):
     realPoints = []
@@ -229,3 +232,56 @@ def makePoints(points):
         newPoint.setCL(point)
         realPoints.append(newPoint)
     return realPoints
+
+
+
+
+def getLeftMost(hull):
+    leftMost = hull[0]
+    for point in hull:
+        if point.returnX() < leftMost.returnX():
+            leftMost = point
+    return leftMost
+
+def getRightMost(hull):
+    getRightMost = hull[0]
+    for point in hull:
+        if point.returnX() > getRightMost.returnX():
+            getRightMost = point
+    return getRightMost
+
+
+
+
+
+
+def createHull(point, list):
+    hull = []
+
+    if list is not None:
+
+        for point in points_list:
+            Point.Point(point[0], point[1], point, point)
+            hull.append(point)
+
+
+    else:
+        point = points_list
+
+        newPointsList = []
+        clockWiseStartPoint = point.returnCL()
+        counterClockWiseStartPoint = point.returnCC()
+
+        hull.append(point)
+        point.check()
+
+        while clockWiseStartPoint != None and not clockWiseStartPoint.returnChecked():
+            clockWiseStartPoint.check()
+            hull.append(clockWiseStartPoint)
+            clockWiseStartPoint = clockWiseStartPoint.returnCL()
+
+
+        while counterClockWiseStartPoint != None and not counterClockWiseStartPoint.returnChecked():
+            counterClockWiseStartPoint.check()
+            hull.append(counterClockWiseStartPoint)
+            counterClockWiseStartPoint = counterClockWiseStartPoint.returnCC()

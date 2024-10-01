@@ -2,15 +2,14 @@ import Point
 
 class Hull: # literally just list of points but I like having it as a class :)
 
-    hull = []
-
     def __init__(self, points_list, list = None):
-        self.hull.clear()
+        hull = []
+
         if list is not None:
 
             for point in points_list:
                 Point.Point(point[0], point[1], point, point)
-                self.hull.append(point)
+                hull.append(point)
 
 
         else:
@@ -20,18 +19,18 @@ class Hull: # literally just list of points but I like having it as a class :)
             clockWiseStartPoint = point.returnCL()
             counterClockWiseStartPoint = point.returnCC()
 
-            self.hull.append(point)
+            hull.append(point)
             point.check()
 
             while clockWiseStartPoint != None and not clockWiseStartPoint.returnChecked():
                 clockWiseStartPoint.check()
-                self.hull.append(clockWiseStartPoint)
+                hull.append(clockWiseStartPoint)
                 clockWiseStartPoint = clockWiseStartPoint.returnCL()
 
 
             while counterClockWiseStartPoint != None and not counterClockWiseStartPoint.returnChecked():
                 counterClockWiseStartPoint.check()
-                self.hull.append(counterClockWiseStartPoint)
+                hull.append(counterClockWiseStartPoint)
                 counterClockWiseStartPoint = counterClockWiseStartPoint.returnCC()
 
 
@@ -39,36 +38,40 @@ class Hull: # literally just list of points but I like having it as a class :)
         # this is going to be black voodoo magic.
 
 
-    def __add__(self, Point):
-        self.hull.append(Point)
+    def __add__(hull, point):
+        hull.append(point)
 
-    def __len__(self):
-        return len(self.hull)
+    def __len__(hull):
+        size = 0
+        for point in hull.createList():
+            size += 1
 
-    def createList(self): # makes a list of non points (array) to return to finalize stuff
+        return size
+
+    def createList(hull): # makes a list of non points (array) to return to finalize stuff
         newList = []
-        for point in self.hull:
+        for point in hull:
             newList.append(point)
         # bleh bleh bleh # this is probably wrong
         return newList
 
-    def resetChecks(self):
-        for point in self.hull:
+    def resetChecks(hull):
+        for point in hull:
             point.unCheck()
 
-    def __getitem__(self, index):
-        return self.hull[index]
+    def __getitem__(hull, index):
+        return hull[index]
 
-    def getLeftMost(self):
-        leftMost = self.hull[0]
-        for point in self.hull:
+    def getLeftMost(hull):
+        leftMost = hull[0]
+        for point in hull:
             if point.returnX() < leftMost.returnX():
                 leftMost = point
         return leftMost
 
-    def getRightMost(self):
-        getRightMost = self.hull[0]
-        for point in self.hull:
+    def getRightMost(hull):
+        getRightMost = hull[0]
+        for point in hull:
             if point.returnX() > getRightMost.returnX():
                 getRightMost = point
         return getRightMost
