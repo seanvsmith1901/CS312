@@ -8,7 +8,7 @@ from venv import create
 # once I figure out constructors its OVER for you fetchers
 
 import Point
-import Hull
+
 import random
 
 # what if, hear me out, hull is just a list of points. thats it. none of this class business.
@@ -18,35 +18,44 @@ def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]
     pointsButAsActualPoints = makePoints(points) # turns our list of points into a point object with a head and whatnot
     new_hull = pointsButAsActualPoints
     full_hull = create_hull(new_hull, recursions) # I let the AI generate the getItem function IDK why it watned it
-    new_list = new_hull
-    return new_list
+    points_list = []
+    for point in full_hull:
+        newPoint = point.returnX(), point.returnY()
+        points_list.append(newPoint)
+
+    return points_list
 
 
 def create_hull(hull, recursions):
 
     recursions += 1
     print(recursions)
-    our_median = hull.at(median(hull)) # median returns the index of the median fetcher rather than teh actual point
+    our_median = median(hull) # returns the x coordiante of our midpoint
     leftList = []
     rightList = []
+    left_hull = None
+    right_hull = None
 
 
-    for point in hull.createList(): # should return the actual list
-        if point.returnX() > our_median.returnX():
+    for point in hull: # should return the actual list
+        if point.returnX() < our_median.returnX():
             leftList.append(point)
         else:
             rightList.append(point)
 
     if len(leftList) > 3:
-        newLeftHull = Hull.Hull(leftList, 1)
-        create_hull(newLeftHull, recursions)
+        newLeftHull = buildAHull(leftList, 1)
+        left_hull = create_hull(newLeftHull, recursions)
 
     if len(rightList) > 3:
-        newRightHull = Hull.Hull(rightList, 1)
-        create_hull(newRightHull, recursions)
+        newRightHull = buildAHull(rightList, 1)
+        right_hull = create_hull(newRightHull, recursions)
 
-    left_hull = formalizeHull(leftList) # i don't think this is creating a new object and IDK why.
-    right_hull = formalizeHull(rightList)
+
+    if not left_hull:
+        left_hull = formalizeHull(leftList) # i don't think this is creating a new object and IDK why.
+    if not right_hull:
+        right_hull = formalizeHull(rightList)
 
 
     return joinHull(left_hull, right_hull)
@@ -54,18 +63,24 @@ def create_hull(hull, recursions):
 
 
 def joinHull(leftHull, rightHull):
-    leftHead = leftHull.getRightMost() # returns the leftmost point of the hull
-    rightHead = rightHull.getLeftMost() # returns the rightmost point of the hull
+    leftHead = getRightMost(leftHull) # returns the leftmost point of the hull
+    rightHead = getLeftMost(rightHull) # returns the rightmost point of the hull
+    draw_hull(leftHull)
+    draw_hull(rightHull)
+
     L1,R1 = find_upper_tangent(leftHead, rightHead)
+
+
+    L2,R2 = find_lower_tangent(leftHead, rightHead)
+
     L1.setCL(R1)
     R1.setCC(L1)
 
-    L2,R2 = find_lower_tangent(leftHead, rightHead)
     L2.setCC(R2)
     R2.setCL(L2)
 
-    new_hull = Hull.Hull(L1) # should create a new hull from that list
-
+    new_hull = buildAHull(L1, None)
+    draw_hull(new_hull)
     return new_hull
 
 
@@ -116,7 +131,7 @@ def formalizeHull(listOfPoints):
             rightMost.setCC(leftMost)
             rightMost.setCL(middle)
 
-        new_hull = Hull.Hull(leftMost)
+        new_hull = buildAHull(leftMost, None)
         return new_hull
 
 
@@ -128,7 +143,7 @@ def formalizeHull(listOfPoints):
         listOfPoints[0].setCC(listOfPoints[1])
         listOfPoints[1].setCC(listOfPoints[0])
 
-        new_hull = Hull.Hull(listOfPoints[0])
+        new_hull = buildAHull(listOfPoints[0], None)
         return new_hull
 
 
@@ -136,7 +151,7 @@ def formalizeHull(listOfPoints):
         listOfPoints[0].setCC(listOfPoints[0])
         listOfPoints[0].setCL(listOfPoints[0])
 
-        new_hull = Hull.Hull(listOfPoints[0])
+        new_hull = buildAHull(listOfPoints[0], None)
         return new_hull# create a hul from this point
 
 
@@ -144,7 +159,7 @@ def formalizeHull(listOfPoints):
 
 def median(S): # hull!
     # just copying the pseducode given on the slides
-    return selection(S, (len(S)/2))
+    return selection(S, (len(S)//2))
 
 
 def selection(S, k):
@@ -153,43 +168,49 @@ def selection(S, k):
     Sr = []
     Sv = []
     # need a random pivot v. there are better ways to pick it. I am not going to do that.
-    v = S.at((random.randint(0, len(S)-1))).returnX()
+
+    v = (S[random.randint(0, len(S)-1)])
+
 
     # choose a random pivot
     for i in range(len(S)):
-        if S[i][0] < v: # make sure this is returning again
-            Sl.append(S.at(i))
-        if S[i][0] == v:
-            Sv.append(S.at(i))
-        if S[i][0] > v:
-            Sr.append(S.at(i))
+        if S[i].returnX() < v.returnX(): # make sure this is returning again
+            Sl.append(S[i])
+        if S[i].returnX() == v.returnX():
+            Sv.append(S[i])
+        if S[i].returnX() > v.returnX():
+            Sr.append(S[i])
 
     if k < len(Sl):
         return selection(Sl, k)
-    if k < len(Sl) + len(Sv):
+    if k < (len(Sl) + len(Sv)):
         return v
-    if k > len(Sl) + len(Sv):
-        return selection(Sr, k - len(Sl) - len(Sv))
+    else:
+    #if k > (len(Sl) + len(Sv)): # for whatever reason I need to make this an else statement or it bricks.
+        return selection(Sr, (k - len(Sl) - len(Sv)))
 
 
 def find_upper_tangent(L,R): # returns line L,R where R is now clockwise of L
     #leftHead = L
     #rightHead = R
-    temp = (L,R)
-    done = 0
+    done = False
     while not done:
-        done = 1
-        Temp = (L,R)
+        done = True
         currSlopeL = slope(L, R)
         currSlopeR = slope(L, R)
-        while slope(L.returnCC, R) < currSlopeL:
-            L = L.returnCC
+        while L.returnCC() is not None and slope(L.returnCC(), R) < currSlopeL:
+            L = L.returnCC()
+            if L == R:
+                break
             currSlopeL = slope(L, R)
-            done = 0
-        while slope(L, R.returnCL) > currSlopeR:
-            R = R.returnCL
+            done = False
+
+        while R.returnCL() is not None and slope(L, R.returnCL()) > currSlopeR:
+            R = R.returnCL()
+            if L == R:
+                break
             currSlopeR = slope(L,R)
-            done = 0
+            done = False
 
     temp = L,R
     return temp
@@ -202,13 +223,18 @@ def find_lower_tangent(L,R):
     done = 0
     while not done:
         done = 1
-        temp = (L,R)
-        while slope(L.returnCL, R) > currSlopeL:
-            L = L.returnCl
+        currSlopeL = slope(L, R)
+        currSlopeR = slope(L, R)
+        while L.returnCL() is not None and slope(L.returnCL(), R) > currSlopeL:
+            L = L.returnCL()
+            if L == R:
+                break
             currSlopeL = slope(L,R)
             done = 0
-        while slope(L, R.returnCC) < currSlopeR:
-            R = R.returnCC
+        while R.returnCC is not None and slope(L, R.returnCC()) < currSlopeR:
+            R = R.returnCC()
+            if L == R:
+                break
             currSlopeR = slope(L,R)
             done = 0
 
@@ -255,7 +281,7 @@ def getRightMost(hull):
 
 
 
-def buildAHull(point, list):
+def buildAHull(points_list, list):
     hull = []
 
     if list is not None:
@@ -266,6 +292,7 @@ def buildAHull(point, list):
 
 
     else:
+
         point = points_list
 
         newPointsList = []
@@ -273,7 +300,7 @@ def buildAHull(point, list):
         counterClockWiseStartPoint = point.returnCC()
 
         hull.append(point)
-        point.check()
+        #point.check()
 
         while clockWiseStartPoint != None and not clockWiseStartPoint.returnChecked():
             clockWiseStartPoint.check()
@@ -285,3 +312,13 @@ def buildAHull(point, list):
             counterClockWiseStartPoint.check()
             hull.append(counterClockWiseStartPoint)
             counterClockWiseStartPoint = counterClockWiseStartPoint.returnCC()
+
+    resetChecks(hull)
+    return hull
+
+
+
+
+def resetChecks(hull):
+    for point in hull:
+        point.unCheck()
