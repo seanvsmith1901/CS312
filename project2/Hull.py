@@ -2,29 +2,28 @@ import Point
 
 class Hull: # literally just list of points but I like having it as a class :)
 
-    def __init__(self):
-        self.hull = []
+    hull = []
 
     def __init__(self, points_list):
         for point in points_list:
-            Point.Point(point[0], point[1], None, None)
+            Point.Point(point[0], point[1], point, point)
             self.hull.append(point)
 
-    def __init__(self, point):
-        newPointsList = []
-        clockWiseStartPoint = point
-        counterClockWiseStartPoint = point.returnCC
-
-        while point.returnCC != None and not point.returnChecked():
-            point.setChecked(True)
-            newPointsList.append(point)
-            point = point.returnCL
-
-
-        while point.returnCL != None and not point.returnChecked():
-            point.setChecked(True)
-            newPointsList.append(Point)
-            point = point.returnCC
+     # def __init__(self, point):
+     #     newPointsList = []
+     #     clockWiseStartPoint = point
+     #     counterClockWiseStartPoint = point.returnCC
+     #
+     #    while point.returnCC != None and not point.returnChecked():
+     #        point.check()
+     #        newPointsList.append(point)
+     #        point = point.returnCL
+     #
+     #
+     #    while point.returnCL != None and not point.returnChecked():
+     #        point.check()
+     #        newPointsList.append(Point)
+     #        point = point.returnCC
 
 
         # creates a new hull from the connected points and returns that hull
@@ -50,4 +49,6 @@ class Hull: # literally just list of points but I like having it as a class :)
 
     def __getitem__(self, index):
         return self.hull[index]
+
+
 

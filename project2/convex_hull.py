@@ -1,6 +1,6 @@
 # Uncomment this line to import some functions that can help
 # you debug your algorithm
-# from plotting import draw_line, draw_hull, circle_point
+from plotting import draw_line, draw_hull, circle_point
 #from unittest.mock import right
 
 from venv import create
@@ -12,33 +12,36 @@ import Hull
 import random
 
 def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
-
+    recursions = 0
     pointsButAsActualPoints = makePoints(points) # turns our list of points into a point object with a head and whatnot
     new_hull = Hull.Hull(pointsButAsActualPoints)
-    new_hull = create_hull(new_hull) # I let the AI generate the getItem function IDK why it watned it
+    new_hull = create_hull(new_hull, recursions) # I let the AI generate the getItem function IDK why it watned it
     new_list = new_hull.create_list()
     return new_list
 
 
-def create_hull(hull):
+def create_hull(hull, recursions):
 
-    our_median = median(hull)
+    recursions += 1
+    print(recursions)
+    our_median = hull[median(hull)] # median returns the index of the median fetcher rather than teh actual point
     leftList = []
     rightList = []
 
-    for point in hull.__createList__(): # should return the actual list
-        if point.returnX > our_median.returnX:
+
+    for point in hull.createList(): # should return the actual list
+        if point.returnX() > our_median.returnX():
             leftList.append(point)
         else:
             rightList.append(point)
 
     if len(leftList) > 3:
         newHull = Hull.Hull(leftList)
-        create_hull(newHull)
+        create_hull(newHull, recursions)
 
     if len(rightList) > 3:
         newHull = Hull.Hull(leftList)
-        create_hull(newHull)
+        create_hull(newHull, recursions)
 
     left_hull = formalizeHull(leftList)
     right_hull = formalizeHull(rightList)
@@ -142,11 +145,11 @@ def selection(S, k):
     # choose a random pivot
     for i in range(len(S)):
         if S[i][0] < v: # make sure this is returning again
-            Sl.append(S.at(i))
+            Sl.append(S[i])
         if S[i][0] == v:
-            Sv.append(S.at(i))
+            Sv.append(S[i])
         if S[i][0] > v:
-            Sr.append(S.at(i))
+            Sr.append(S[i])
 
     if k < len(Sl):
         return selection(Sl, k)
@@ -211,6 +214,8 @@ def slope(L : Point,R : Point):
 def makePoints(points):
     realPoints = []
     for point in points:
-        newPoint = Point(point[0], point[1], point, point)
+        newPoint = Point.Point(point[0], point[1], point, point)
+        newPoint.setCC(point)
+        newPoint.setCL(point)
         realPoints.append(newPoint)
     return realPoints

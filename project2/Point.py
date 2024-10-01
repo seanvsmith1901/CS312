@@ -44,3 +44,5 @@ class Point:
     def returnChecked(self):
         return self.__checked
 
+    def __getitem__(self, item):
+        return item
