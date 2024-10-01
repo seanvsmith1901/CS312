@@ -255,7 +255,7 @@ def getRightMost(hull):
 
 
 
-def createHull(point, list):
+def buildAHull(point, list):
     hull = []
 
     if list is not None:
