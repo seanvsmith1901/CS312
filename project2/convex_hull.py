@@ -43,7 +43,7 @@ def create_hull(hull, recursions):
         newRightHull = Hull.Hull(rightList, 1)
         create_hull(newRightHull, recursions)
 
-    left_hull = formalizeHull(leftList)
+    left_hull = formalizeHull(leftList) # i don't think this is creating a new object and IDK why.
     right_hull = formalizeHull(rightList)
 
     return joinHull(left_hull, right_hull)
@@ -51,11 +51,13 @@ def create_hull(hull, recursions):
 
 
 def joinHull(leftHull, rightHull):
-    L1,R1 = find_upper_tangent(leftHull, rightHull)
+    leftHead = leftHull.getRightMost() # returns the leftmost point of the hull
+    rightHead = rightHull.getLeftMost() # returns the rightmost point of the hull
+    L1,R1 = find_upper_tangent(leftHead, rightHead)
     L1.setCL(R1)
     R1.setCC(L1)
 
-    L2,R2 = find_lower_tangent(leftHull, rightHull)
+    L2,R2 = find_lower_tangent(leftHead, rightHead)
     L2.setCC(R2)
     R2.setCL(L2)
 
@@ -86,23 +88,28 @@ def formalizeHull(listOfPoints):
         else:
             rightMost = listOfPoints[2]
 
-        listOfPoints.remove(leftMost)
-        listOfPoints.remove(rightMost)
-        middle = listOfPoints[0]
+        middlePoints = []
+
+        for point in listOfPoints:
+            middlePoints.append(point)
+
+        middlePoints.remove(leftMost)
+        middlePoints.remove(rightMost)
+        middle = middlePoints[0]
 
         if middle.returnY() > leftMost.returnY(): # edge case 1, with a upwards facing triangle
             leftMost.setCL(middle)
             leftMost.setCC(rightMost)
-            middle.setCC(leftMost)
             middle.setCL(rightMost)
+            middle.setCC(leftMost)
             rightMost.setCL(leftMost)
             rightMost.setCC(middle)
 
         else: # edge case 2, with a downwards facing triangle
             leftMost.setCC(middle)
             leftMost.setCL(rightMost)
-            middle.setCL(leftMost)
             middle.setCC(rightMost)
+            middle.setCL(leftMost)
             rightMost.setCC(leftMost)
             rightMost.setCL(middle)
 

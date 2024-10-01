@@ -14,26 +14,25 @@ class Hull: # literally just list of points but I like having it as a class :)
 
 
         else:
-            self.hull.clear()
             point = points_list
 
             newPointsList = []
-            clockWiseStartPoint = point
-            counterClockWiseStartPoint = point.returnCC
+            clockWiseStartPoint = point.returnCL()
+            counterClockWiseStartPoint = point.returnCC()
 
             self.hull.append(point)
             point.check()
 
-            while clockWiseStartPoint != None and not point.returnChecked():
-                point.check()
-                self.hull.append(point)
-                point = point.returnCL()
+            while clockWiseStartPoint != None and not clockWiseStartPoint.returnChecked():
+                clockWiseStartPoint.check()
+                self.hull.append(clockWiseStartPoint)
+                clockWiseStartPoint = clockWiseStartPoint.returnCL()
 
 
-            while counterClockWiseStartPoint != None and not point.returnChecked():
-                point.check()
-                self.hull.append(Point)
-                point = point.returnCC()
+            while counterClockWiseStartPoint != None and not counterClockWiseStartPoint.returnChecked():
+                counterClockWiseStartPoint.check()
+                self.hull.append(counterClockWiseStartPoint)
+                counterClockWiseStartPoint = counterClockWiseStartPoint.returnCC()
 
 
         # creates a new hull from the connected points and returns that hull
@@ -59,6 +58,20 @@ class Hull: # literally just list of points but I like having it as a class :)
 
     def __getitem__(self, index):
         return self.hull[index]
+
+    def getLeftMost(self):
+        leftMost = self.hull[0]
+        for point in self.hull:
+            if point.returnX() < leftMost.returnX():
+                leftMost = point
+        return leftMost
+
+    def getRightMost(self):
+        getRightMost = self.hull[0]
+        for point in self.hull:
+            if point.returnX() > getRightMost.returnX():
+                getRightMost = point
+        return getRightMost
 
 
 
