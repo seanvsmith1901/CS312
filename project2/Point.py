@@ -1,11 +1,6 @@
 
 class Point:
 
-    __x = None
-    __y = None
-    __cl = None
-    __cc = None
-
 
     def __init__(self, x, y, cl, cc):
         self.__x = x
@@ -32,8 +27,6 @@ class Point:
     def setCL(self, new_point):
         self.__cl = new_point
 
-    def returnPoint(self):
-        return [self.returnX(), self.returnY()]
 
     def check(self):
         self.__checked = True

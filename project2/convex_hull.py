@@ -14,49 +14,47 @@ import random
 # what if, hear me out, hull is just a list of points. thats it. none of this class business.
 
 def compute_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
-    recursions = 0
-    pointsButAsActualPoints = makePoints(points) # turns our list of points into a point object with a head and whatnot
-    new_hull = pointsButAsActualPoints
-    full_hull = create_hull(new_hull, recursions) # I let the AI generate the getItem function IDK why it watned it
+    pointsButAsActualPoints = makePoints(points) # this has a time complexity of O(n)
+
+    full_hull = create_hull(pointsButAsActualPoints) # this is supposed to be O(nlog(n)) but I think I did something wrong.
+
+
     points_list = []
-    for point in full_hull:
+    for point in full_hull: # this is also worst case O(n), where every point gets used in the final hull
         newPoint = point.returnX(), point.returnY()
         points_list.append(newPoint)
 
     return points_list
 
 
-def create_hull(hull, recursions):
+def create_hull(hull):
 
-    recursions += 1
-    print(recursions)
-    our_median = median(hull) # returns the x coordiante of our midpoint
+    our_median = median(hull) # according to the class notes, this has an average case of O(n), but a worst case of O(n)
     leftList = []
     rightList = []
     left_hull = None
     right_hull = None
 
 
-    for point in hull: # should return the actual list
+    for point in hull: # should return the actual list # O(n) time
         if point.returnX() < our_median.returnX():
             leftList.append(point)
         else:
             rightList.append(point)
 
-    if len(leftList) > 3:
+    if len(leftList) > 1:
         newLeftHull = buildAHull(leftList, 1)
-        left_hull = create_hull(newLeftHull, recursions)
+        left_hull = create_hull(newLeftHull)
 
-    if len(rightList) > 3:
+    if len(rightList) > 1:
         newRightHull = buildAHull(rightList, 1)
-        right_hull = create_hull(newRightHull, recursions)
+        right_hull = create_hull(newRightHull)
 
 
     if not left_hull:
-        left_hull = formalizeHull(leftList) # i don't think this is creating a new object and IDK why.
+        left_hull = formalizeHull(leftList) # if we don't have a hull, make one. O(n)
     if not right_hull:
         right_hull = formalizeHull(rightList)
-
 
     return joinHull(left_hull, right_hull)
 
@@ -65,12 +63,8 @@ def create_hull(hull, recursions):
 def joinHull(leftHull, rightHull):
     leftHead = getRightMost(leftHull) # returns the leftmost point of the hull
     rightHead = getLeftMost(rightHull) # returns the rightmost point of the hull
-    draw_hull(leftHull)
-    draw_hull(rightHull)
 
     L1,R1 = find_upper_tangent(leftHead, rightHead)
-
-
     L2,R2 = find_lower_tangent(leftHead, rightHead)
 
     L1.setCL(R1)
@@ -80,72 +74,10 @@ def joinHull(leftHull, rightHull):
     R2.setCL(L2)
 
     new_hull = buildAHull(L1, None)
-    draw_hull(new_hull)
     return new_hull
 
 
 def formalizeHull(listOfPoints):
-    #new_hull = Hull.Hull(listOfPoints)
-
-    if len(listOfPoints) == 3: # this is the one where we gotta find the leftMost and rightmost lol
-        # find leftmost and rightmost and then detremrine if mid is above or below
-        leftMost = listOfPoints[0]
-        rightMost = listOfPoints[1]
-        middle = listOfPoints[2]
-
-        if(listOfPoints[0].returnX() < listOfPoints[1].returnX()) and listOfPoints[0].returnX() < listOfPoints[2].returnX():# if our first point is more left than second point
-            leftMost = listOfPoints[0]
-        elif((listOfPoints[1].returnX() < listOfPoints[2].returnX()) and (listOfPoints[1].returnX() < listOfPoints[0].returnX())):
-            leftMost = listOfPoints[1]
-        else:
-            leftMost = listOfPoints[2]
-        if (listOfPoints[0].returnX() > listOfPoints[1].returnX()) and listOfPoints[0].returnX() > listOfPoints[2].returnX():  # if our first point is more left than second point
-            rightMost = listOfPoints[0]
-        elif ((listOfPoints[1].returnX() > listOfPoints[2].returnX()) and (listOfPoints[1].returnX() > listOfPoints[0].returnX())):
-            rightMost = listOfPoints[1]
-        else:
-            rightMost = listOfPoints[2]
-
-        middlePoints = []
-
-        for point in listOfPoints:
-            middlePoints.append(point)
-
-        middlePoints.remove(leftMost)
-        middlePoints.remove(rightMost)
-        middle = middlePoints[0]
-
-        if middle.returnY() > leftMost.returnY(): # edge case 1, with a upwards facing triangle
-            leftMost.setCL(middle)
-            leftMost.setCC(rightMost)
-            middle.setCL(rightMost)
-            middle.setCC(leftMost)
-            rightMost.setCL(leftMost)
-            rightMost.setCC(middle)
-
-        else: # edge case 2, with a downwards facing triangle
-            leftMost.setCC(middle)
-            leftMost.setCL(rightMost)
-            middle.setCC(rightMost)
-            middle.setCL(leftMost)
-            rightMost.setCC(leftMost)
-            rightMost.setCL(middle)
-
-        new_hull = buildAHull(leftMost, None)
-        return new_hull
-
-
-
-    if len(listOfPoints) == 2:
-        listOfPoints[0].setCL(listOfPoints[1])
-        listOfPoints[1].setCL(listOfPoints[0])
-
-        listOfPoints[0].setCC(listOfPoints[1])
-        listOfPoints[1].setCC(listOfPoints[0])
-
-        new_hull = buildAHull(listOfPoints[0], None)
-        return new_hull
-
 
     if len(listOfPoints) == 1:
         listOfPoints[0].setCC(listOfPoints[0])
@@ -153,8 +85,6 @@ def formalizeHull(listOfPoints):
 
         new_hull = buildAHull(listOfPoints[0], None)
         return new_hull# create a hul from this point
-
-
 
 
 def median(S): # hull!
@@ -191,64 +121,42 @@ def selection(S, k):
 
 
 def find_upper_tangent(L,R): # returns line L,R where R is now clockwise of L
-    #leftHead = L
-    #rightHead = R
     done = False
     while not done:
         done = True
-        currSlopeL = slope(L, R)
-        currSlopeR = slope(L, R)
-        while L.returnCC() is not None and slope(L.returnCC(), R) < currSlopeL:
+
+        while L.returnCC() is not None and slope(L.returnCC(), R) < slope(L, R):
             L = L.returnCC()
-            if L == R:
-                break
-            currSlopeL = slope(L, R)
             done = False
 
-        while R.returnCL() is not None and slope(L, R.returnCL()) > currSlopeR:
+
+        while R.returnCL() is not None and slope(L, R.returnCL()) > slope(L, R):
             R = R.returnCL()
-            if L == R:
-                break
-            currSlopeR = slope(L,R)
             done = False
-
-    temp = L,R
-    return temp
+    return L,R
 
 
 def find_lower_tangent(L,R):
-    #leftHead = L
-    #rightHead = R
-    temp = (L,R)
-    done = 0
+    done = False
     while not done:
-        done = 1
-        currSlopeL = slope(L, R)
-        currSlopeR = slope(L, R)
-        while L.returnCL() is not None and slope(L.returnCL(), R) > currSlopeL:
+        done = True
+
+        while L.returnCL() is not None and slope(L.returnCL(), R) > slope(L, R):
             L = L.returnCL()
-            if L == R:
-                break
-            currSlopeL = slope(L,R)
-            done = 0
-        while R.returnCC is not None and slope(L, R.returnCC()) < currSlopeR:
+            done = False
+
+        while R.returnCC() is not None and slope(L, R.returnCC()) < slope(L, R):
             R = R.returnCC()
-            if L == R:
-                break
-            currSlopeR = slope(L,R)
-            done = 0
+            done = False
 
-    temp = L,R
-    return temp # once again this is the fetcher that we need
-
-
+    return L,R # once again this is the fetcher that we need
 
 
 def slope(L : Point,R : Point):
     top = R.returnY() - L.returnY()
     bottom = R.returnX() - L.returnX()
-
     return (top / bottom)
+
 
 def makePoints(points):
     realPoints = []
@@ -260,14 +168,13 @@ def makePoints(points):
     return realPoints
 
 
-
-
 def getLeftMost(hull):
     leftMost = hull[0]
     for point in hull:
         if point.returnX() < leftMost.returnX():
             leftMost = point
     return leftMost
+
 
 def getRightMost(hull):
     getRightMost = hull[0]
@@ -322,3 +229,4 @@ def buildAHull(points_list, list):
 def resetChecks(hull):
     for point in hull:
         point.unCheck()
+
