@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # sys.argv = ['main.py', '-n', '10', '--seed', '312', '--debug']
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', type=int, help='The number of points to generate', default= 500000)
+    parser.add_argument('-n', type=int, help='The number of points to generate', default= 1000000)
     parser.add_argument('-d', '--dist', '--distribution',
                         help='The distribution from which to generate points',
                         default='uniform'
