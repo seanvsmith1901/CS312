@@ -7,20 +7,18 @@ class ArrayPQ: # use tuples where the priority is the first element and the valu
 
     def __init__(self, items): # items is a map contianing the item and the prioriryt
         self.queue = []
+        self.index_map = {}
         self.makeQueue(items)
 
     def makeQueue(self, items):
-        # need to use the distances as keys, distance should always be infinite
         distance = math.inf
         for item in items:
             self.queue.append((distance, item))
+            self.index_map[item] = len(self.queue) - 1
 
     def setPriority(self, node, priority):
-        for item in self.queue:
-            if item[1] == node:
-                newItem = (priority, item[1])
-                self.queue.remove(item)
-                self.queue.append(newItem)
+        index = self.index_map[node]
+        self.queue[index] = (priority, node)
 
 
     def __bool__(self):
@@ -30,25 +28,27 @@ class ArrayPQ: # use tuples where the priority is the first element and the valu
         return len(self.queue) == 0
 
     def insert(self, item, priority):
-        if not item in self.queue:
+        if not item in self.queue: # delete this if you can
             self.queue.append((priority, item))
+            self.index_map[item] = len(self.queue) - 1
 
     def deleteMin(self):
         min_val = 0
-        for i in range(len(self.queue)):
+        for i in range(1, len(self.queue)):
             if self.queue[i][0] < self.queue[min_val][0]:
                 min_val = i
         item = self.queue[min_val][1]
         del self.queue[min_val]
+        del self.index_map[item]
+
+        for i in range(min_val, len(self.queue)): # resets all of the indexes in the queue.
+            self.index_map[self.queue[i][1]] = i
+
         return item
 
 
     def decrease_key(self, node, new_priority):
         self.setPriority(node, new_priority)
-
-
-
-
 
 
 
