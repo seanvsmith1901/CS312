@@ -31,6 +31,7 @@ def dijkstras(pq, graph, source, target):
     pq.setPriority(source, 0)
 
     while not pq.isEmpty():
+
         current_node = pq.deleteMin()
 
         if current_node == target:
@@ -38,11 +39,12 @@ def dijkstras(pq, graph, source, target):
 
         for away_edge in graph[current_node]:
             weight = graph[current_node][away_edge]
+            current_distance = distance[current_node] + weight
 
-            if distance[away_edge] > distance[current_node] + weight:
-                distance[away_edge] = distance[current_node] + weight
+            if distance[away_edge] > current_distance:
+                distance[away_edge] = current_distance
                 previous[away_edge] = current_node
-                pq.decrease_key(away_edge, distance[current_node] + weight)
+                pq.decrease_key(away_edge, current_distance)
 
     # need to rework this logic lol
 
