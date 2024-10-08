@@ -58,6 +58,7 @@ class HeapPQ:
 
     def __init__(self, items):
         self.heap = []
+        self.index_map = {}
         self.makeHeap(items)
 
     def isEmpty(self):
@@ -67,6 +68,7 @@ class HeapPQ:
         distance = math.inf
         for item in items:
             self.heap.append((distance, item))
+            self.index_map[item] = len(self.heap) - 1
 
     def parent(self, i):
         return (i -1) // 2 # basically because we can assume that its filled all the way we can do some weird stuff mathmatically
@@ -80,14 +82,19 @@ class HeapPQ:
     def insert(self, item, priority):
         self.heap.append((priority, item))
         self.heapify_up(len(self.heap)-1)
+        self.index_map[item] = len(self.heap)-1
 
     def heapify_up(self, i):
         while i > 0 and self.heap[i][0] < self.heap[self.parent(i)][0]: # make sure we are sorting by priority here
             self.swap(i, self.parent(i))
+            self.index_map[self.heap[i][1]] = i # adjusts the input map appropriately.
+            self.index_map[self.heap[self.parent(i)][1]] = self.parent(i)
             i = self.parent(i)
 
     def swap(self, i, j):
-        self.heap[i], self.heap[j] = self.heap[j], self.heap[i] # the fetching AI wrote all that for me. fetch that.
+        self.heap[i], self.heap[j] = self.heap[j], self.heap[i]
+        self.index_map[self.heap[i][1]] = i
+        self.index_map[self.heap[j][1]] = j
 
     def heapify_down(self, i):
         n = len(self.heap)
@@ -103,6 +110,8 @@ class HeapPQ:
 
             if smallest != i:
                 self.swap(i, smallest)
+                self.index_map[self.heap[i][1]] = i
+                self.index_map[self.heap[smallest][1]] = smallest
                 i = smallest
 
             else:
@@ -114,23 +123,23 @@ class HeapPQ:
             return None
 
         item = self.heap[0][1]
+        last_item = self.heap.pop()
         self.heap[0] = self.heap[-1]
-        self.heap.pop()
+        self.index_map[last_item[1]] = 0
         self.heapify_down(0)
+        del self.index_map[item]
         return item
 
 
     def setPriority(self, node, priority):
-        for index, (p, n) in enumerate(self.heap):
-            if n == node:
-                current_priority = self.heap[index][0]
-                self.heap[index] = (priority, n)
+        index = self.index_map[node]
+        current_priority = self.heap[index][0]
+        self.heap[index] = (priority, node)
+        if priority < current_priority:
+            self.heapify_up(index)
+        else:
+            self.heapify_down(index)
 
-                if priority < current_priority:
-                    self.heapify_up(index)
-                else:
-                    self.heapify_down(index)
-                break
 
 
     def decrease_key(self, node, new_priority):

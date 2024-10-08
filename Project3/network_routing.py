@@ -27,7 +27,6 @@ def dijkstras(pq, graph, source, target):
         previous[node] = None
 
     distance[source] = 0
-
     pq.setPriority(source, 0)
 
     while not pq.isEmpty():
