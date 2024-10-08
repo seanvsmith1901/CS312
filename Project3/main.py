@@ -94,12 +94,12 @@ if __name__ == '__main__':
     # sys.argv = ['main.py', '-n', '10', '--seed', '312', '--density', '0.3', '--noise', '0.05']
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', type=int, help='The number of points to generate', default=10)
+    parser.add_argument('-n', type=int, help='The number of points to generate', default=5000)
     parser.add_argument('--seed', type=int, default=312, help='Random seed')
-    parser.add_argument('--density', type=float, default=0.8, help='Fraction of non-inf edges')
-    parser.add_argument('--noise', type=float, default=0, help='How non-euclidean are the edge weights')
-    parser.add_argument('--source', type=int, default=0, help='Starting node')
-    parser.add_argument('--target', type=int, default=None, help='Target node')
+    parser.add_argument('--density', type=float, default=0.002, help='Fraction of non-inf edges')
+    parser.add_argument('--noise', type=float, default=0.01, help='How non-euclidean are the edge weights')
+    parser.add_argument('--source', type=int, default=2, help='Starting node')
+    parser.add_argument('--target', type=int, default=9, help='Target node')
     parser.add_argument('--debug', action='store_true', help='Turn on debug plotting')
     args = parser.parse_args()
 
