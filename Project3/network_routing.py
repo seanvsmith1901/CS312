@@ -16,7 +16,7 @@ def find_shortest_path_with_heap(
 
     H = HeapPQ(graph) # should use the distances as keys, we shall see. I don't think this is workign the way that I want it to.
 
-    while H:
+    while H: # just adding a comment to force changes lol
         current_node = H.__next__()
 
         for away_edge in graph[current_node]:
