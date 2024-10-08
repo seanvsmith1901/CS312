@@ -1,14 +1,13 @@
-class Priority_Queue_With_List:
+class ArrayPQ:
 
     # So I think for this one I will need to use a dictionary, where the key is the object and the attribute is the priority, so lets change that here first.
 
-
     def __init__(self):
-        self.queue = {}
+        self.queue = []
 
-    def makeQueue(self, items):
+    def makeQueue(self, item, priority):
         for item in items:
-            self.queue[item] = items[item]
+            self.queue.append(item)
 
     def isEmpty(self):
         return len(self.queue) == 0
@@ -24,6 +23,11 @@ class Priority_Queue_With_List:
         item = self.queue[max_val]
         del self.queue[max_val]
         return item
+
+
+
+class HeapPQ:
+    pass
 
 
 
