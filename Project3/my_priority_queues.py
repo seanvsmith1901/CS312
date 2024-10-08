@@ -117,18 +117,20 @@ class HeapPQ:
             else:
                 break
 
+    def deleteMin(self):
 
-    def deleteMin(self): # so the problem is that I need this to be a min heap, not a max heap. maybe.
-        if len(self.heap) == 0:
-            return None
+        min_item = self.heap[0][1]
 
-        item = self.heap[0][1]
+
         last_item = self.heap.pop()
-        self.heap[0] = self.heap[-1]
+
+        self.heap[0] = last_item
         self.index_map[last_item[1]] = 0
         self.heapify_down(0)
-        del self.index_map[item]
-        return item
+
+
+        del self.index_map[min_item]
+        return min_item
 
 
     def setPriority(self, node, priority):
