@@ -4,8 +4,7 @@ from fontTools.cffLib import privateDictOperators
 
 
 class ArrayPQ: # use tuples where the priority is the first element and the value is the second element
-
-    def __init__(self, items): # items is a map contianing the item and the prioriryt
+    def __init__(self, items): # old cod e
         self.queue = []
         self.index_map = {}
         self.makeQueue(items)
@@ -17,38 +16,51 @@ class ArrayPQ: # use tuples where the priority is the first element and the valu
             self.index_map[item] = len(self.queue) - 1
 
     def setPriority(self, node, priority):
-        index = self.index_map[node]
-        self.queue[index] = (priority, node)
+        if node in self.index_map:
+          index = self.index_map[node]
+          self.queue[index] = (priority, node)
 
 
     def __bool__(self):
-        return len(self.queue) == 0
+        return len(self.queue) > 0 # ==??
 
     def isEmpty(self):
         return len(self.queue) == 0
 
     def insert(self, item, priority):
-        if not item in self.queue: # delete this if you can
+        if not item in self.index_map: # does that matter?
             self.queue.append((priority, item))
             self.index_map[item] = len(self.queue) - 1
 
     def deleteMin(self):
+        if self.isEmpty():
+            return None
+
         min_val = 0
         for i in range(1, len(self.queue)):
             if self.queue[i][0] < self.queue[min_val][0]:
                 min_val = i
-        item = self.queue[min_val][1]
-        del self.queue[min_val]
+
+        priority, item = self.queue[min_val]
+
+        self.queue[min_val] = self.queue[-1]
+        self.queue.pop()
+
         del self.index_map[item]
 
-        for i in range(min_val, len(self.queue)): # resets all of the indexes in the queue.
-            self.index_map[self.queue[i][1]] = i
+
+        if min_val < len(self.queue):
+            moved_item = self.queue[min_val][1]
+            self.index_map[moved_item] = min_val
+
+
 
         return item
 
 
     def decrease_key(self, node, new_priority):
-        self.setPriority(node, new_priority)
+        if node in self.index_map and new_priority < self.queue[self.index_map[node]][0]:
+            self.setPriority(node, new_priority)
 
 
 
@@ -120,15 +132,11 @@ class HeapPQ:
     def deleteMin(self):
 
         min_item = self.heap[0][1]
-
-
         last_item = self.heap.pop()
-
-        self.heap[0] = last_item
+        if self.heap:
+            self.heap[0] = last_item
         self.index_map[last_item[1]] = 0
         self.heapify_down(0)
-
-
         del self.index_map[min_item]
         return min_item
 

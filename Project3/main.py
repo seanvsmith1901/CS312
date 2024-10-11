@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # sys.argv = ['main.py', '-n', '10', '--seed', '312', '--density', '0.3', '--noise', '0.05']
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', type=int, help='The number of points to generate', default=5000)
+    parser.add_argument('-n', type=int, help='The number of points to generate', default=6000)
     parser.add_argument('--seed', type=int, default=312, help='Random seed')
     parser.add_argument('--density', type=float, default=1, help='Fraction of non-inf edges')
     parser.add_argument('--noise', type=float, default=0.01, help='How non-euclidean are the edge weights')
