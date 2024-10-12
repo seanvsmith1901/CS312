@@ -1,5 +1,5 @@
 import math
-from my_priority_queues import ArrayPQ # add the hashmap to this when it becomes relavant
+from my_priority_queues import ArrayPQ, HeapPQ # add the hashmap to this when it becomes relavant
 
 
 def find_shortest_path_with_heap(
@@ -7,44 +7,8 @@ def find_shortest_path_with_heap(
         source: int,
         target: int
 ) -> tuple[list[int], float]:
-
-    # distance = {}
-    # previous = {}
-    # for node in graph:
-    #     distance[node] = math.inf
-    #     previous[node] = None
-    #
-    # distance[source] = 0
-    #
-    # H = HeapPQ(graph) # should use the distances as keys, we shall see. I don't think this is workign the way that I want it to.
-    #
-    # while H: # just adding a comment to force changes lol
-    #     current_node = H.__next__()
-    #
-    #     for away_edge in graph[current_node]:
-    #
-    #         weight = graph[current_node][away_edge]
-    #
-    #         if distance[away_edge] > distance[current_node] + weight:
-    #             distance[away_edge] = distance[current_node] + weight
-    #             previous[away_edge] = current_node
-    #             H.set_priority(away_edge, weight)
-    #
-    #
-    #
-    # # this works just fine, not a lot going on here.
-    # return_previous = []
-    # previous_node = target
-    # return_previous.append(target)
-    #
-    # while previous_node != source:
-    #     return_previous.append(previous[previous_node])
-    #     previous_node = previous[previous_node]
-    #
-    # return_previous.reverse()
-    # return return_previous, distance[target] # something like that
-    return 0;
-
+    H = HeapPQ(graph)
+    return dijkstras(H, graph, source, target)
 
 
 def find_shortest_path_with_array(
@@ -52,7 +16,10 @@ def find_shortest_path_with_array(
         source: int,
         target: int
 ) -> tuple[list[int], float]:
+    A = ArrayPQ(graph)
+    return dijkstras(A, graph, source, target)
 
+def dijkstras(pq, graph, source, target):
     distance = {}
     previous = {}
     for node in graph:
@@ -60,23 +27,23 @@ def find_shortest_path_with_array(
         previous[node] = None
 
     distance[source] = 0
+    pq.setPriority(source, 0)
 
-    A = ArrayPQ(graph) # should use the distances as keys, we shall see. I don't think this is workign the way that I want it to.
-    A.setPriority(source, 0)
+    while not pq.isEmpty():
 
-    while not A.isEmpty():
-        current_node = A.deleteMin()
+        current_node = pq.deleteMin()
 
         if current_node == target:
             break
 
         for away_edge in graph[current_node]:
             weight = graph[current_node][away_edge]
+            current_distance = distance[current_node] + weight
 
-            if distance[away_edge] > distance[current_node] + weight:
-                distance[away_edge] = distance[current_node] + weight
+            if distance[away_edge] > current_distance:
+                distance[away_edge] = current_distance
                 previous[away_edge] = current_node
-                A.decrease_key(away_edge, weight)
+                pq.decrease_key(away_edge, current_distance)
 
     # need to rework this logic lol
 
@@ -89,9 +56,6 @@ def find_shortest_path_with_array(
 
     return_previous.reverse()
     return return_previous, distance[target]  # something like that
-
-
-
 
 
 
