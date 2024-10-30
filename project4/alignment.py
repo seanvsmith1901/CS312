@@ -31,12 +31,12 @@ def align(
 
     E[0][0] = point(0,0,0,None)
     # establishes our base cases including the 0 edge case.
-    for i in range(1,seq1_length+1):
+    for i in range(1,seq1_length):
         new_point = point(i, 0, indel_penalty * i, E[i-1][0])
         E[i][0] = new_point
 
 
-    for j in range(1,seq2_length+1):
+    for j in range(1,seq2_length):
         new_point = point(0, j, indel_penalty * j, E[j-1][0])
         E[0][j] = new_point
 
