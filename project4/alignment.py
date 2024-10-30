@@ -1,3 +1,5 @@
+from typing import final
+
 from point import *
 
 def align(
@@ -57,8 +59,12 @@ def align(
             E[i][j] = point(i, j, cost, prev)
 
     # need to reconstruct the previous tree
-    total_cost = E[seq1_length][seq2_length].return_cost()
-    print("this is the total cost! ", total_cost)
+    final_node = E[seq1_length][seq2_length]
+    total_cost = final_node.return_cost()
+    print("this is the total cost! ", total_cost, seq1, seq2, gap)
+
+    word1, word2 = make_prev(final_node, seq1, seq2, gap)
+    return total_cost, word1, word2
 
 
 
@@ -68,3 +74,26 @@ def calc_cost(a,b, sub_penalty, match_award):
         return match_award
     else:
         return sub_penalty
+
+def make_prev(final_node, seq1, seq2, gap):
+    word1 = ""
+    word2 = ""
+    while final_node.previous != None:
+        if final_node.i-1 == final_node.previous.i and final_node.j-1 == final_node.previous.j:
+            word2 += str((seq2[final_node.j-1]))
+            word1 += str((seq1[final_node.i-1]))
+
+        elif final_node.i-1 != final_node.previous.i and final_node.j+1 == final_node.previous.j:
+            word1 += str((seq1[final_node.i - 1]))
+            word2 += str((gap))
+        else:
+            word1 += str((gap))
+            word2 += str((seq1[final_node.j - 1]))
+
+
+        final_node = final_node.previous
+
+    result1 = ''.join(reversed(word1))
+    result2 = ''.join(reversed(word2))
+    return result1, result2
+
