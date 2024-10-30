@@ -27,23 +27,23 @@ def dijkstras(pq, graph, source, target):
         previous[node] = None
 
     distance[source] = 0
-    pq.setPriority(source, 0)
+    pq.setPriority(source, 0) # doesn't count
 
-    while not pq.isEmpty():
+    while not pq.isEmpty(): # bool
 
-        current_node = pq.deleteMin()
+        current_node = pq.deleteMin() # Olog(V)
 
-        if current_node == target:
+        if current_node == target: # O(1)
             break
 
-        for away_edge in graph[current_node]:
-            weight = graph[current_node][away_edge]
-            current_distance = distance[current_node] + weight
+        for away_edge in graph[current_node]: # O(E)
+            weight = graph[current_node][away_edge] # O(1)
+            current_distance = distance[current_node] + weight # O(1)
 
-            if distance[away_edge] > current_distance:
+            if distance[away_edge] > current_distance: # constant
                 distance[away_edge] = current_distance
                 previous[away_edge] = current_node
-                pq.decrease_key(away_edge, current_distance)
+                pq.decrease_key(away_edge, current_distance) #
 
     # need to rework this logic lol
 
