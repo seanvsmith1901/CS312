@@ -27,25 +27,20 @@ def align(
     seq1_length, seq2_length = len(seq1), len(seq2)
     E = [[point() for j in range(seq2_length+1)] for i in range(seq1_length+1)] # creates my lsit
 
+    E[0][0] = point(0,0,0,None)
     # establishes our base cases including the 0 edge case.
-    for i in range(1,seq1_length):
-        if i == 0:
-            new_point = point(i, 0, indel_penalty * i, None) # previous defaults to none
-        else:
-            new_point = point(i, 0, indel_penalty * i, E[i-1][0])
+    for i in range(1,seq1_length+1):
+        new_point = point(i, 0, indel_penalty * i, E[i-1][0])
         E[i][0] = new_point
 
 
-    for j in range(1,seq2_length):
-        if (j == 0):
-            new_point = point(0, j, indel_penalty * j, None)
-        else:
-            new_point = point(0, j, indel_penalty * j, E[j-1][0])
+    for j in range(1,seq2_length+1):
+        new_point = point(0, j, indel_penalty * j, E[j-1][0])
         E[0][j] = new_point
 
-    for i in range(1, seq1_length):
-        for j in range(1, seq2_length):
-            cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i], seq2[j], sub_penalty, match_award)
+    for i in range(1, seq1_length+1):
+        for j in range(1, seq2_length+1):                       # this represents the actual letters maybe.
+            cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
             cost2 = (E[i][j-1]).return_cost() + indel_penalty
             cost3 = (E[i-1][j]).return_cost() + indel_penalty
 
@@ -62,7 +57,7 @@ def align(
             E[i][j] = point(i, j, cost, prev)
 
     # need to reconstruct the previous tree
-    total_cost = E[seq1_length-1][seq2_length-1].return_cost()
+    total_cost = E[seq1_length][seq2_length].return_cost()
     print("this is the total cost! ", total_cost)
 
 
