@@ -83,12 +83,14 @@ def make_prev(final_node, seq1, seq2, gap):
             word2 += str((seq2[final_node.j-1]))
             word1 += str((seq1[final_node.i-1]))
 
-        elif final_node.i-1 != final_node.previous.i and final_node.j+1 == final_node.previous.j:
+        elif final_node.i-1 != final_node.previous.i and final_node.j-1 == final_node.previous.j:
             word1 += str((gap))
             word2 += str((seq2[final_node.j - 1]))
-        else:
+        elif final_node.i-1 == final_node.previous.i and final_node.j-1 != final_node.previous.j:
             word2 += str((gap))
             word1 += str((seq1[final_node.i - 1]))
+        else:
+            print("You're not supposed to be here")
 
 
 
