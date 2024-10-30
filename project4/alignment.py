@@ -84,11 +84,13 @@ def make_prev(final_node, seq1, seq2, gap):
             word1 += str((seq1[final_node.i-1]))
 
         elif final_node.i-1 != final_node.previous.i and final_node.j+1 == final_node.previous.j:
-            word1 += str((seq1[final_node.i - 1]))
-            word2 += str((gap))
-        else:
             word1 += str((gap))
-            word2 += str((seq1[final_node.j - 1]))
+            word2 += str((seq2[final_node.j - 1]))
+        else:
+            word2 += str((gap))
+            word1 += str((seq1[final_node.i - 1]))
+
+
 
 
         final_node = final_node.previous
