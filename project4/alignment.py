@@ -27,21 +27,35 @@ def align(
 
     # creates our blank array (we will have to refactor this for k bands
     seq1_length, seq2_length = len(seq1), len(seq2)
-    E = [[point() for j in range(seq2_length+1)] for i in range(seq1_length+1)] # creates my lsit
 
+    if banded_width != -1: # there is no band with, n * m size array and initalize base cases
+        E = [[point() for j in range((2 * banded_width) + 1)] for i in range(seq1_length + 1)]  # creates an N by k table
+        for i in range(1, banded_width + 1):
+            new_point = point(i, 0, indel_penalty * i, E[i - 1][0])
+            E[i][0] = new_point
+
+        for j in range(1, banded_width + 1):
+            new_point = point(0, j, indel_penalty * j, E[j - 1][0])
+            E[0][j] = new_point
+
+    else: # we create an n * k size array. and initalize base cases all the way down.
+        E = [[point() for j in range(seq1_length + 2)] for i in range(seq1_length + 1)]  # creates n by k
+        for i in range(1, seq1_length):
+            new_point = point(i, 0, indel_penalty * i, E[i - 1][0])
+            E[i][0] = new_point
+
+        for j in range(1, seq2_length):
+            new_point = point(0, j, indel_penalty * j, E[j - 1][0])
+            E[0][j] = new_point
+
+    # will always be the same :)
     E[0][0] = point(0,0,0,None)
     # establishes our base cases including the 0 edge case.
-    for i in range(1,seq1_length):
-        new_point = point(i, 0, indel_penalty * i, E[i-1][0])
-        E[i][0] = new_point
 
-
-    for j in range(1,seq2_length):
-        new_point = point(0, j, indel_penalty * j, E[j-1][0])
-        E[0][j] = new_point
 
     for i in range(1, seq1_length+1):
-        for j in range(1, seq2_length+1):                       # this represents the actual letters maybe.
+        #for j in range(1, seq2_length+1): # this represents the actual letters maybe.
+        # this is where we need to modify
             cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
             cost2 = (E[i][j-1]).return_cost() + indel_penalty
             cost3 = (E[i-1][j]).return_cost() + indel_penalty
