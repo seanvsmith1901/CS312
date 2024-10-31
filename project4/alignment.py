@@ -46,11 +46,8 @@ def align(
                         E[i][j] = point(i, j, indel_penalty * i, E[i-1][j+1])
 
 
-
-
-
     else: # no band width. generate the whole fetching thing.
-        E = [[point() for j in range(seq1_length + 2)] for i in range(seq1_length + 1)]  # creates n by k
+        E = [[point() for j in range(seq2_length + 1)] for i in range(seq1_length + 1)]  # creates n by k
         for i in range(1, seq1_length):
             new_point = point(i, 0, indel_penalty * i, E[i - 1][0])
             E[i][0] = new_point
@@ -63,62 +60,58 @@ def align(
         E[0][0] = point(0,0,0,None)
     # establishes our base cases including the 0 edge case.
 
-# this stuff is for the actual non banded lengths.
-    # for i in range(1, seq1_length+1):
-    #     for j in range(1, seq2_length+1): # this represents the actual letters maybe.
-    #     # this is where we need to modify
-    #         cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
-    #         cost2 = (E[i][j-1]).return_cost() + indel_penalty
-    #         cost3 = (E[i-1][j]).return_cost() + indel_penalty
-    #
-    #         if cost1 <= cost2 and cost1 <= cost3:
-    #             prev = E[i-1][j-1]
-    #             cost = cost1
-    #         elif cost2 < cost1 and cost2 <= cost3:
-    #             prev = E[i][j-1]
-    #             cost = cost2
-    #         else:
-    #             prev = E[i-1][j]
-    #             cost = cost3
-    #
-    #         E[i][j] = point(i, j, cost, prev)
+    if banded_width == -1:
 
-
-    for i in range(1, seq1_length+1):
-        for k in range(0, (2*banded_width)+1):
-            j = -banded_width + k + i
-            if j > 0 and j < seq2_length:
-                print("this is our I and J ", i, " ", j)
-                # WE ARE HER WE ARE HERE
-
-
-                # you can always check diagonal. it is always morally correct. https://www.reddit.com/r/MemeRestoration/comments/mqoiv7/its_morally_correct_requested_by_ujustvolted/
-                cost1 = (E[i - 1][k]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
-
-                if k == 0:
-                    cost2 = math.inf
-                else:
-                    cost2 = (E[i][k - 1]).return_cost() + indel_penalty
-
-                if k == 2 * banded_width:
-                    cost3 = math.inf
-                else:
-                    cost3 = (E[i - 1][k + 1]).return_cost() + indel_penalty
+        for i in range(1, seq1_length+1):
+            for j in range(1, seq2_length+1): # this represents the actual letters maybe.
+            # this is where we need to modify
+                cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
+                cost2 = (E[i][j-1]).return_cost() + indel_penalty
+                cost3 = (E[i-1][j]).return_cost() + indel_penalty
 
                 if cost1 <= cost2 and cost1 <= cost3:
-                    prev = E[i - 1][k - 1]
+                    prev = E[i-1][j-1]
                     cost = cost1
                 elif cost2 < cost1 and cost2 <= cost3:
-                    prev = E[i][k - 1]
+                    prev = E[i][j-1]
                     cost = cost2
                 else:
-                    prev = E[i - 1][k]
+                    prev = E[i-1][j]
                     cost = cost3
 
-                E[i][k] = point(i, j, cost, prev) # remember to store it at value k, but we need it to have value j for retracing reasons
+                E[i][j] = point(i, j, cost, prev)
 
-            else:
-                pass # weird edgecase that falls out of range at beginning and end of diagonal
+    else:
+        for i in range(1, seq1_length+1):
+            for k in range(0, (2*banded_width)+1):
+                j = -banded_width + k + i
+                if j > 0 and j < seq2_length+1:
+
+                    # you can always check diagonal. it is always morally correct. https://www.reddit.com/r/MemeRestoration/comments/mqoiv7/its_morally_correct_requested_by_ujustvolted/
+                    cost1 = (E[i - 1][k]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
+
+                    if k == 0:
+                        cost2 = math.inf
+                    else:
+                        cost2 = (E[i][k - 1]).return_cost() + indel_penalty
+
+                    if k == 2 * banded_width:
+                        cost3 = math.inf
+                    else:
+                        cost3 = (E[i - 1][k + 1]).return_cost() + indel_penalty
+
+                    if cost1 <= cost2 and cost1 <= cost3:
+                        prev = E[i - 1][k]
+                        cost = cost1
+                    elif cost2 < cost1 and cost2 <= cost3:
+                        prev = E[i][k - 1]
+                        cost = cost2
+                    else:
+                        prev = E[i - 1][k + 1]
+                        cost = cost3
+
+                    E[i][k] = point(i, j, cost, prev) # remember to store it at value k, but we need it to have value j for retracing reasons
+
 
 
     # need to reconstruct the previous tree
@@ -132,9 +125,6 @@ def align(
     word1, word2 = make_prev(final_node, seq1, seq2, gap)
     return total_cost, word1, word2
 
-
-def add_entry():
-    pass
 
 
 def calc_cost(a,b, sub_penalty, match_award):
