@@ -52,28 +52,56 @@ def align(
     E[0][0] = point(0,0,0,None)
     # establishes our base cases including the 0 edge case.
 
+# this stuff is for the actual non banded lengths.
+    # for i in range(1, seq1_length+1):
+    #     for j in range(1, seq2_length+1): # this represents the actual letters maybe.
+    #     # this is where we need to modify
+    #         cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
+    #         cost2 = (E[i][j-1]).return_cost() + indel_penalty
+    #         cost3 = (E[i-1][j]).return_cost() + indel_penalty
+    #
+    #         if cost1 <= cost2 and cost1 <= cost3:
+    #             prev = E[i-1][j-1]
+    #             cost = cost1
+    #         elif cost2 < cost1 and cost2 <= cost3:
+    #             prev = E[i][j-1]
+    #             cost = cost2
+    #         else:
+    #             prev = E[i-1][j]
+    #             cost = cost3
+    #
+    #         E[i][j] = point(i, j, cost, prev)
+
 
     for i in range(1, seq1_length+1):
-        #for j in range(1, seq2_length+1): # this represents the actual letters maybe.
-        # this is where we need to modify
-            cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
-            cost2 = (E[i][j-1]).return_cost() + indel_penalty
-            cost3 = (E[i-1][j]).return_cost() + indel_penalty
+        for k in range(0, (2*banded_width)+1):
+            j = k + i - (banded_width+1) #
+            if j >= 1 and j < seq2_length:
+                cost1 = (E[i - 1][k - 1]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
+                cost2 = (E[i][k - 1]).return_cost() + indel_penalty
+                cost3 = (E[i - 1][k]).return_cost() + indel_penalty
 
-            if cost1 <= cost2 and cost1 <= cost3:
-                prev = E[i-1][j-1]
-                cost = cost1
-            elif cost2 < cost1 and cost2 <= cost3:
-                prev = E[i][j-1]
-                cost = cost2
+                if cost1 <= cost2 and cost1 <= cost3:
+                    prev = E[i - 1][k - 1]
+                    cost = cost1
+                elif cost2 < cost1 and cost2 <= cost3:
+                    prev = E[i][k - 1]
+                    cost = cost2
+                else:
+                    prev = E[i - 1][k]
+                    cost = cost3
+
+                E[i][k] = point(i, j, cost, prev) # remember to store it at value k, but we need it to have value j for retracing reasons
+
             else:
-                prev = E[i-1][j]
-                cost = cost3
+                pass # weird edgecase that falls out of range at beginning and end of diagonal
 
-            E[i][j] = point(i, j, cost, prev)
 
     # need to reconstruct the previous tree
-    final_node = E[seq1_length][seq2_length]
+    if banded_width == -1:
+        final_node = E[seq1_length][seq2_length]
+    else:
+        final_node = E[seq1_length][banded_width]
     total_cost = final_node.return_cost()
     print("this is the total cost! ", total_cost, seq1, seq2, gap)
 
@@ -81,6 +109,8 @@ def align(
     return total_cost, word1, word2
 
 
+def add_entry():
+    pass
 
 
 def calc_cost(a,b, sub_penalty, match_award):
