@@ -89,7 +89,8 @@ def align(
             j = -banded_width + k + i
             if j >= 0 and j < seq2_length:
                 print("this is our I and J ", i, " ", j)
-                if (j < banded_width + 1) or (E[i][j] != math.inf): # telling us its a base case.
+                # WE ARE HER WE ARE HERE
+                if ((i < banded_width + 1) and (E[i][j] != math.inf)) != True): # telling us its a base case.
 
                     # you can always check diagonal. it is always morally correct. https://www.reddit.com/r/MemeRestoration/comments/mqoiv7/its_morally_correct_requested_by_ujustvolted/
                     cost1 = (E[i - 1][k]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
