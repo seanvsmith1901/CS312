@@ -87,35 +87,35 @@ def align(
     for i in range(1, seq1_length+1):
         for k in range(0, (2*banded_width)+1):
             j = -banded_width + k + i
-            if j >= 0 and j < seq2_length:
+            if j > 0 and j < seq2_length:
                 print("this is our I and J ", i, " ", j)
                 # WE ARE HER WE ARE HERE
-                if (((i < banded_width + 1) and (E[i][j] != math.inf)) != True): # telling us its a base case.
 
-                    # you can always check diagonal. it is always morally correct. https://www.reddit.com/r/MemeRestoration/comments/mqoiv7/its_morally_correct_requested_by_ujustvolted/
-                    cost1 = (E[i - 1][k]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
 
-                    if k == 0:
-                        cost2 = math.inf
-                    else:
-                        cost2 = (E[i][k - 1]).return_cost() + indel_penalty
+                # you can always check diagonal. it is always morally correct. https://www.reddit.com/r/MemeRestoration/comments/mqoiv7/its_morally_correct_requested_by_ujustvolted/
+                cost1 = (E[i - 1][k]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
 
-                    if k == 2 * banded_width:
-                        cost3 = math.inf
-                    else:
-                        cost3 = (E[i - 1][k + 1]).return_cost() + indel_penalty
+                if k == 0:
+                    cost2 = math.inf
+                else:
+                    cost2 = (E[i][k - 1]).return_cost() + indel_penalty
 
-                    if cost1 <= cost2 and cost1 <= cost3:
-                        prev = E[i - 1][k - 1]
-                        cost = cost1
-                    elif cost2 < cost1 and cost2 <= cost3:
-                        prev = E[i][k - 1]
-                        cost = cost2
-                    else:
-                        prev = E[i - 1][k]
-                        cost = cost3
+                if k == 2 * banded_width:
+                    cost3 = math.inf
+                else:
+                    cost3 = (E[i - 1][k + 1]).return_cost() + indel_penalty
 
-                    E[i][k] = point(i, j, cost, prev) # remember to store it at value k, but we need it to have value j for retracing reasons
+                if cost1 <= cost2 and cost1 <= cost3:
+                    prev = E[i - 1][k - 1]
+                    cost = cost1
+                elif cost2 < cost1 and cost2 <= cost3:
+                    prev = E[i][k - 1]
+                    cost = cost2
+                else:
+                    prev = E[i - 1][k]
+                    cost = cost3
+
+                E[i][k] = point(i, j, cost, prev) # remember to store it at value k, but we need it to have value j for retracing reasons
 
             else:
                 pass # weird edgecase that falls out of range at beginning and end of diagonal
