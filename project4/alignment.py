@@ -29,8 +29,9 @@ def align(
     # creates our blank array (we will have to refactor this for k bands
     seq1_length, seq2_length = len(seq1), len(seq2)
 
+    E = initialize_matrix(seq1_length, seq2_length, banded_width)
+
     if banded_width != -1: # we have a band with and generate the n by k array
-        E = [[point() for j in range((2 * banded_width) + 1)] for i in range(seq1_length + 1)]  # creates an N by k table
         for i in range(0, banded_width + 1):
             for j in range(0, (2 * banded_width) + 1):
                 if i == 0:
@@ -47,7 +48,6 @@ def align(
 
 
     else: # no band width. generate the whole fetching thing.
-        E = [[point() for j in range(seq2_length + 1)] for i in range(seq1_length + 1)]  # creates n by k
         for i in range(1, seq1_length):
             new_point = point(i, 0, indel_penalty * i, E[i - 1][0])
             E[i][0] = new_point
@@ -125,6 +125,12 @@ def align(
     word1, word2 = make_prev(final_node, seq1, seq2, gap)
     return total_cost, word1, word2
 
+
+def initialize_matrix(seq1_length, seq2_length, banded_width):
+    if banded_width != -1:
+        return [[point() for _ in range((2 * banded_width) + 1)] for _ in range(seq1_length + 1)]
+    else:
+        return [[point() for _ in range(seq2_length + 1)] for _ in range(seq1_length + 1)]
 
 
 def calc_cost(a,b, sub_penalty, match_award):
