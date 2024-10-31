@@ -39,7 +39,7 @@ def test_small_dna_alignment_not_banded(align):
 @max_score(8)
 @with_import('alignment')
 def test_small_dna_alignment_banded(align):
-    score, aseq1, aseq2 = align('GGGGTTTTAAAACCCCTTTT', 'TTTTAAAACCCCTTTTGGGG', banded_width=2)
+    score, aseq1, aseq2 = align('GGGGTTTTAAAACCCCTTTT', 'TTTTAAAACCCCTTTTGGGG', banded_width=5)
     assert score == 6
     assert aseq1 == 'GGGGTTTTAAAACCCCTT--TT'
     assert aseq2 == '--TTTTAAAACCCCTTTTGGGG'

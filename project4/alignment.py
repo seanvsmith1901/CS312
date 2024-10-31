@@ -1,3 +1,4 @@
+import math
 from typing import final
 
 from point import *
@@ -28,17 +29,27 @@ def align(
     # creates our blank array (we will have to refactor this for k bands
     seq1_length, seq2_length = len(seq1), len(seq2)
 
-    if banded_width != -1: # there is no band with, n * m size array and initalize base cases
+    if banded_width != -1: # we have a band with and generate the n by k array
         E = [[point() for j in range((2 * banded_width) + 1)] for i in range(seq1_length + 1)]  # creates an N by k table
-        for i in range(1, banded_width + 1):
-            new_point = point(i, 0, indel_penalty * i, E[i - 1][0])
-            E[i][0] = new_point
+        for i in range(0, banded_width + 1):
+            for j in range(0, (2 * banded_width) + 1):
+                if i == 0:
+                    cost = (j - banded_width) * indel_penalty
+                    if cost < 0:
+                        cost = math.inf
+                    if cost == 0:
+                        E[i][j] = point(i, j, cost, None)
+                    else:
+                        E[i][j] = point(i, j, cost, E[i][j-1])
+                else:
+                    if j == banded_width - i:
+                        E[i][j] = point(i, j, indel_penalty * i, E[i-1][j+1])
 
-        for j in range(1, banded_width + 1):
-            new_point = point(0, j, indel_penalty * j, E[j - 1][0])
-            E[0][j] = new_point
 
-    else: # we create an n * k size array. and initalize base cases all the way down.
+
+
+
+    else: # no band width. generate the whole fetching thing.
         E = [[point() for j in range(seq1_length + 2)] for i in range(seq1_length + 1)]  # creates n by k
         for i in range(1, seq1_length):
             new_point = point(i, 0, indel_penalty * i, E[i - 1][0])
@@ -48,8 +59,8 @@ def align(
             new_point = point(0, j, indel_penalty * j, E[j - 1][0])
             E[0][j] = new_point
 
-    # will always be the same :)
-    E[0][0] = point(0,0,0,None)
+        # will always be the same :) check the indentation level.
+        E[0][0] = point(0,0,0,None)
     # establishes our base cases including the 0 edge case.
 
 # this stuff is for the actual non banded lengths.
@@ -77,9 +88,19 @@ def align(
         for k in range(0, (2*banded_width)+1):
             j = k + i - (banded_width+1) #
             if j >= 1 and j < seq2_length:
-                cost1 = (E[i - 1][k - 1]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
-                cost2 = (E[i][k - 1]).return_cost() + indel_penalty
-                cost3 = (E[i - 1][k]).return_cost() + indel_penalty
+
+                # you can always check diagonal. it is always morally correct. https://www.reddit.com/r/MemeRestoration/comments/mqoiv7/its_morally_correct_requested_by_ujustvolted/
+                cost1 = (E[i - 1][k-1]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
+
+                if k == 0:
+                    cost2 = math.inf
+                else:
+                    cost2 = (E[i][k - 1]).return_cost() + indel_penalty
+
+                if k == 2 * banded_width:
+                    cost3 = math.inf
+                else:
+                    cost3 = (E[i - 1][k + 1]).return_cost() + indel_penalty
 
                 if cost1 <= cost2 and cost1 <= cost3:
                     prev = E[i - 1][k - 1]
