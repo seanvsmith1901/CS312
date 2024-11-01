@@ -26,11 +26,26 @@ def align(
         :return: alignment cost, alignment 1, alignment 2
     """
 
-    # creates our blank array (we will have to refactor this for k bands
-    seq1_length, seq2_length = len(seq1), len(seq2)
 
-    if banded_width != -1: # we have a band with and generate the n by k array
-        E = [[point() for j in range((2 * banded_width) + 1)] for i in range(seq1_length + 1)]  # creates an N by k table
+    seq1_length, seq2_length = len(seq1), len(seq2) # need these constants elsewhere baby
+
+    E = initialize_matrix(banded_width, seq1_length, seq2_length) #creates either nm or nk matrix
+
+    E = set_base_case(E, seq1_length, seq2_length, banded_width, indel_penalty) # populates the graph with our base case
+
+    E = populate_tree(E, seq1_length, seq2_length, seq1, seq2, banded_width, sub_penalty, match_award, indel_penalty) # fills out the tree
+
+    final_node = get_final(E, banded_width, seq1_length, seq2_length) # gets the final node (depends on band)
+
+    total_cost = final_node.return_cost() # gets the cost of that node
+
+    word1, word2 = make_prev(final_node, seq1, seq2, gap) # reconstructs from pointers the word path and the word comparisons
+
+    return total_cost, word1, word2 # returns in the order the code wants them.
+
+
+def set_base_case(E, seq1_length, seq2_length, banded_width, indel_penalty):
+    if banded_width != -1:
         for i in range(0, banded_width + 1):
             for j in range(0, (2 * banded_width) + 1):
                 if i == 0:
@@ -40,14 +55,12 @@ def align(
                     if cost == 0:
                         E[i][j] = point(i, j, cost, None)
                     else:
-                        E[i][j] = point(i, j, cost, E[i][j-1])
+                        E[i][j] = point(i, j, cost, E[i][j - 1])
                 else:
                     if j == banded_width - i:
-                        E[i][j] = point(i, j, indel_penalty * i, E[i-1][j+1])
+                        E[i][j] = point(i, j, indel_penalty * i, E[i - 1][j + 1])
 
-
-    else: # no band width. generate the whole fetching thing.
-        E = [[point() for j in range(seq2_length + 1)] for i in range(seq1_length + 1)]  # creates n by k
+    else:
         for i in range(1, seq1_length):
             new_point = point(i, 0, indel_penalty * i, E[i - 1][0])
             E[i][0] = new_point
@@ -58,10 +71,27 @@ def align(
 
         # will always be the same :) check the indentation level.
         E[0][0] = point(0,0,0,None)
-    # establishes our base cases including the 0 edge case.
 
+    return E
+
+
+def calc_cost(a,b, sub_penalty, match_award):
+    if a == b:
+        return match_award
+    else:
+        return sub_penalty
+
+
+def initialize_matrix(banded_width, seq1_length, seq2_length):
+    if banded_width != -1:
+        return [[point() for _ in range((2 * banded_width) + 1)] for _ in range(seq1_length + 1)]  # creates an N by k table
+    else:
+        return [[point() for _ in range(seq2_length + 1)] for _ in range(seq1_length + 1)]  # creates n by k
+
+
+
+def populate_tree(E, seq1_length, seq2_length, seq1, seq2, banded_width, sub_penalty, match_award, indel_penalty):
     if banded_width == -1:
-
         for i in range(1, seq1_length+1):
             for j in range(1, seq2_length+1): # this represents the actual letters maybe.
             # this is where we need to modify
@@ -112,26 +142,15 @@ def align(
 
                     E[i][k] = point(i, j, cost, prev) # remember to store it at value k, but we need it to have value j for retracing reasons
 
+    return E
 
-
-    # need to reconstruct the previous tree
+def get_final(E, banded_width, seq1_length, seq2_length):
     if banded_width == -1:
         final_node = E[seq1_length][seq2_length]
     else:
         final_node = E[seq1_length][banded_width]
-    total_cost = final_node.return_cost()
-    print("this is the total cost! ", total_cost, seq1, seq2, gap)
 
-    word1, word2 = make_prev(final_node, seq1, seq2, gap)
-    return total_cost, word1, word2
-
-
-
-def calc_cost(a,b, sub_penalty, match_award):
-    if a == b:
-        return match_award
-    else:
-        return sub_penalty
+    return final_node
 
 def make_prev(final_node, seq1, seq2, gap):
     word1 = ""
@@ -149,9 +168,6 @@ def make_prev(final_node, seq1, seq2, gap):
             word1 += str((seq1[final_node.i - 1]))
         else:
             print("You're not supposed to be here")
-
-
-
 
         final_node = final_node.previous
 
