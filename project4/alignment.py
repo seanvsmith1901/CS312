@@ -66,7 +66,7 @@ def set_base_case(E, seq1_length, seq2_length, banded_width, indel_penalty):
             E[i][0] = new_point
 
         for j in range(1, seq2_length):
-            new_point = point(0, j, indel_penalty * j, E[j - 1][0])
+            new_point = point(0, j, indel_penalty * j, E[0][j - 1])
             E[0][j] = new_point
 
         # will always be the same :) check the indentation level.
@@ -132,9 +132,11 @@ def populate_tree(E, seq1_length, seq2_length, seq1, seq2, banded_width, sub_pen
 
                     if cost1 <= cost2 and cost1 <= cost3:
                         prev = E[i - 1][k]
+                        prev.j = j-1 # look man IDK why I had to do this but it worked alright?
                         cost = cost1
+
                     elif cost2 < cost1 and cost2 <= cost3:
-                        prev = E[i][k - 1]
+                        prev = E[i][k-1]
                         cost = cost2
                     else:
                         prev = E[i - 1][k + 1]
