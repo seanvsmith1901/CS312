@@ -44,7 +44,7 @@ def align(
     return total_cost, word1, word2 # returns in the order the code wants them.
 
 
-def set_base_case(E, seq1_length, seq2_length, banded_width, indel_penalty):
+def set_base_case(E, seq1_length, seq2_length, banded_width, indel_penalty): # not a good way to reconcile these
     if banded_width != -1:
         for i in range(0, banded_width + 1):
             for j in range(0, (2 * banded_width) + 1):
@@ -83,39 +83,50 @@ def calc_cost(a,b, sub_penalty, match_award):
 
 
 def initialize_matrix(banded_width, seq1_length, seq2_length):
+    first_range = seq2_length + 1
     if banded_width != -1:
-        return [[point() for _ in range((2 * banded_width) + 1)] for _ in range(seq1_length + 1)]  # creates an N by k table
-    else:
-        return [[point() for _ in range(seq2_length + 1)] for _ in range(seq1_length + 1)]  # creates n by k
+        first_range = (2 * banded_width) + 1
+
+    return [[point() for _ in range(first_range)] for _ in range(seq1_length + 1)]  # creates n by k
 
 
 
 def populate_tree(E, seq1_length, seq2_length, seq1, seq2, banded_width, sub_penalty, match_award, indel_penalty):
+    first_int = 1
+    second_length = seq2_length + 1
+
+    if banded_width != -1:
+        second_length = (2*banded_width) + 1
+        first_int = 0
+
     if banded_width == -1:
         for i in range(1, seq1_length+1):
-            for j in range(1, seq2_length+1): # this represents the actual letters maybe.
-            # this is where we need to modify
-                cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
-                cost2 = (E[i][j-1]).return_cost() + indel_penalty
-                cost3 = (E[i-1][j]).return_cost() + indel_penalty
+            for j in range(first_int, second_length): # this represents the actual letters maybe.
 
-                if cost1 <= cost2 and cost1 <= cost3:
-                    prev = E[i-1][j-1]
-                    cost = cost1
-                elif cost2 < cost1 and cost2 <= cost3:
-                    prev = E[i][j-1]
-                    cost = cost2
-                else:
-                    prev = E[i-1][j]
-                    cost = cost3
+                if 0 < j < seq2_length + 1:
+                # this is where we need to modify
+                    cost1 = (E[i-1][j-1]).return_cost() + calc_cost(seq1[i-1], seq2[j-1], sub_penalty, match_award)
+                    cost2 = (E[i][j-1]).return_cost() + indel_penalty
+                    cost3 = (E[i-1][j]).return_cost() + indel_penalty
 
-                E[i][j] = point(i, j, cost, prev)
+                    if cost1 <= cost2 and cost1 <= cost3:
+                        prev = E[i-1][j-1]
+                        prev.j = j - 1  # look man IDK why I had to do this but it worked alright?
+                        cost = cost1
+                    elif cost2 < cost1 and cost2 <= cost3:
+                        prev = E[i][j-1]
+                        cost = cost2
+                    else:
+                        prev = E[i-1][j]
+                        cost = cost3
+
+                    E[i][j] = point(i, j, cost, prev)
 
     else:
         for i in range(1, seq1_length+1):
-            for k in range(0, (2*banded_width)+1):
+            for k in range(first_int, second_length):
                 j = -banded_width + k + i
-                if j > 0 and j < seq2_length+1:
+                if 0 < j < seq2_length+1:
 
                     # you can always check diagonal. it is always morally correct. https://www.reddit.com/r/MemeRestoration/comments/mqoiv7/its_morally_correct_requested_by_ujustvolted/
                     cost1 = (E[i - 1][k]).return_cost() + calc_cost(seq1[i - 1], seq2[j - 1], sub_penalty, match_award)
@@ -147,10 +158,11 @@ def populate_tree(E, seq1_length, seq2_length, seq1, seq2, banded_width, sub_pen
     return E
 
 def get_final(E, banded_width, seq1_length, seq2_length):
-    if banded_width == -1:
-        final_node = E[seq1_length][seq2_length]
-    else:
-        final_node = E[seq1_length][banded_width]
+    second_length = seq2_length
+    if banded_width != -1:
+        second_length = banded_width
+
+    final_node = E[seq1_length][second_length]
 
     return final_node
 
