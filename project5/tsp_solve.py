@@ -58,7 +58,7 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     n_nodes_expanded = 0
     n_nodes_pruned = 0
     cut_tree = CutTree(len(edges))
-
+    currentNode = 0 # keep track of where we are
     # so for the adjacency matrix, go through at that i and then look for the lowest value (that isn't itself) and then store it and consult that node
     # if the lowest cost is inf, then we are fetched, we can prune that tree and we can try again with a differnet one.
 
@@ -67,7 +67,7 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             return stats
 
         visited = set()
-        currentNode = 0
+
         stack = [currentNode]
         tour = []
         while stack:
