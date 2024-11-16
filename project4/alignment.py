@@ -1,7 +1,7 @@
 import math
 from typing import final
 
-from point import *
+from point import point
 
 def align(
         seq1: str,
@@ -28,19 +28,12 @@ def align(
 
 
     seq1_length, seq2_length = len(seq1), len(seq2) # need these constants elsewhere baby
-
     E = initialize_matrix(banded_width, seq1_length, seq2_length) #creates either nm or nk matrix
-
     E = set_base_case(E, seq1_length, seq2_length, banded_width, indel_penalty) # populates the graph with our base case
-
     E = populate_tree(E, seq1_length, seq2_length, seq1, seq2, banded_width, sub_penalty, match_award, indel_penalty) # fills out the tree
-
     final_node = get_final(E, banded_width, seq1_length, seq2_length) # gets the final node (depends on band)
-
     total_cost = final_node.return_cost() # gets the cost of that node
-
     word1, word2 = make_prev(final_node, seq1, seq2, gap) # reconstructs from pointers the word path and the word comparisons
-
     return total_cost, word1, word2 # returns in the order the code wants them.
 
 

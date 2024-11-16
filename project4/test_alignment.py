@@ -63,7 +63,7 @@ def test_medium_dna_alignment(align):
 
 @max_score(10)
 @with_import('alignment')
-@timeout(180)
+@timeout(20)
 def test_large_dna_alignment(align):
     seq1 = read_sequence(test_files / 'bovine_coronavirus.txt')[:3000]
     seq2 = read_sequence(test_files / 'murine_hepatitus.txt')[:3000]

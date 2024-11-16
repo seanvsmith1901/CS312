@@ -1,7 +1,6 @@
 from math import inf
 
-class point():
-
+class point:
     def __init__(self, i=0, j=0, cost=inf, previous=None):
         self.i = i
         self.j = j
@@ -16,6 +15,3 @@ class point():
 
     def __str__(self):
         return self.cost
-
-
-
