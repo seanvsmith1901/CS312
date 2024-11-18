@@ -84,36 +84,37 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
                 stack.pop()
                 if nextNode is not None:
-                    tour.append(node)
                     stack.append(nextNode)
 
+                tour.append(node)
 
 
 
-        cost = score_tour(tour, edges)
-        if math.isinf(cost):
-            n_nodes_pruned += 1
-            cut_tree.cut(tour)
-            currentNode += 1
-            continue
+        currentNode += 1
+
+        if len(tour) == len(edges):
+            cost = score_tour(tour, edges)
+
+            if math.isinf(cost):
+                n_nodes_pruned += 1
+                cut_tree.cut(tour)
+                currentNode += 1
+                continue
 
 
-        if stats and cost > stats[-1].score:
-            n_nodes_pruned += 1
-            cut_tree.cut(tour)
-            currentNode += 1
-            continue
 
-        stats.append(SolutionStats(
-            tour=tour,
-            score=cost,
-            time=timer.time(),
-            max_queue_size=1,
-            n_nodes_expanded=n_nodes_expanded,
-            n_nodes_pruned=n_nodes_pruned,
-            n_leaves_covered=cut_tree.n_leaves_cut(),
-            fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-        ))
+            stats.append(SolutionStats(
+                tour=tour,
+                score=cost,
+                time=timer.time(),
+                max_queue_size=1,
+                n_nodes_expanded=n_nodes_expanded,
+                n_nodes_pruned=n_nodes_pruned,
+                n_leaves_covered=cut_tree.n_leaves_cut(),
+                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+            ))
+
+            break
 
     if not stats:
         return [SolutionStats(
