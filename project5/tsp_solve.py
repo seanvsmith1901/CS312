@@ -139,37 +139,54 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     n_nodes_expanded = 0
     n_nodes_pruned = 0
     cut_tree = CutTree(len(edges))
-    currentNode = 0  # keep track of where we are
-    # so for the adjacency matrix, go through at that i and then look for the lowest value (that isn't itself) and then store it and consult that node
-    # if the lowest cost is inf, then we are fetched, we can prune that tree and we can try again with a differnet one.
+    currentNode = 0
+    previous = {}
+    distance = {}
+    cost = {}
+
+    graph = {} # gets me a graph in a way that makes sense
+    for i in range(len(edges)):
+        for j in range(len(edges)):
+            if edges[i][j] != math.inf and i != j:
+                if i not in graph:
+                    graph[i] = [j]
+                else:
+                    graph[i].append(j)
+
+    for node in graph:
+        distance[node] = math.inf
+        previous[node] = None
+
+
+
+
+
+
+
+
+
+
 
     while True:
+        tour = []
+        stack = []
         if timer.time_out():
             return stats
 
-        visited = set()
 
-        stack = [currentNode]
-        tour = []
+
+        stack.append(0) # always start from city 0
         while stack:
             node = stack[-1]
-            if node not in visited:
-                visited.add(node)
-                currentMin = math.inf
-                nextNode = None
-                for i in range(len(edges[node])):
-                    if i != node and i not in visited:  # make sure we avoid the null
-                        if edges[node][i] < currentMin:
-                            currentMin = edges[node][i]
-                            nextNode = i
-
-                stack.pop()
-                if nextNode is not None:
-                    stack.append(nextNode)
-
+            if node not in tour:
                 tour.append(node)
 
-        currentNode += 1
+                for neighbor in graph.get(node, []):
+                    if neighbor not in tour:
+                        stack.append(neighbor)
+            else:
+                stack.pop()
+
 
         if len(tour) == len(edges):
             cost = score_tour(tour, edges)
@@ -183,19 +200,33 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             if stats and cost > stats[-1].score:
                 n_nodes_pruned += 1
                 cut_tree.cut(tour)
-
                 continue
 
-            stats.append(SolutionStats(
-                tour=tour,
-                score=cost,
-                time=timer.time(),
-                max_queue_size=1,
-                n_nodes_expanded=n_nodes_expanded,
-                n_nodes_pruned=n_nodes_pruned,
-                n_leaves_covered=cut_tree.n_leaves_cut(),
-                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-            ))
+            if stats:
+                if cost > stats[-1].score: # only add it to stats if it is a lower score
+                    stats.append(SolutionStats(
+                        tour=tour,
+                        score=cost,
+                        time=timer.time(),
+                        max_queue_size=1,
+                        n_nodes_expanded=n_nodes_expanded,
+                        n_nodes_pruned=n_nodes_pruned,
+                        n_leaves_covered=cut_tree.n_leaves_cut(),
+                        fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+                    ))
+                else:
+                    pass # do nothing
+            else:
+                stats.append(SolutionStats(
+                    tour=tour,
+                    score=cost,
+                    time=timer.time(),
+                    max_queue_size=1,
+                    n_nodes_expanded=n_nodes_expanded,
+                    n_nodes_pruned=n_nodes_pruned,
+                    n_leaves_covered=cut_tree.n_leaves_cut(),
+                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+                ))
 
     if not stats:
         return [SolutionStats(

@@ -62,6 +62,8 @@ def test_dfs():
         [1, inf, inf, 10, 0]
     ]
     timer = Timer(10)
+
+
     stats = dfs(graph, timer)
     assert_valid_tours(graph, stats)
 
