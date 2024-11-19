@@ -4,6 +4,10 @@ import random
 from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
 from tsp_cuttree import CutTree
 
+import copy
+
+from dataStructure import *
+
 
 def random_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     stats = []
@@ -174,7 +178,7 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             possible_route = stack.pop()
             node_to_test = possible_route[-1] # looks at the node on the top
             for neighbor in graph.get(node_to_test, []):
-                new_route = possible_route.copy()
+                new_route = possible_route.copy() # normal copy seems to work fine here but we might need to change it
                 if neighbor not in possible_route:
                     new_route.append(neighbor)
                     if len(new_route) == len(edges):
@@ -242,97 +246,55 @@ def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, ti
 
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+
+    initial_state = copy.deepcopy(edges)
+
     stats = []
     n_nodes_expanded = 0
     n_nodes_pruned = 0
-    cut_tree = CutTree(len(edges))
-    currentNode = 0
-    previous = {}
-    distance = {}
-    cost = {}
+    cut_tree = CutTree(len(initial_state))
+
+
+    BSSF = (greedy_tour(initial_state, timer))[0].score # this exists ENTIRELY FOR testing so don't look at it too hard
 
     # DO ROWS THEN EDGES FOR THE LOWEST COST EDGES
-    lowestCostMatrix = [[math.inf for _ in range(len(edges))]for _ in range(len(edges))]
-
-    sum = 0
-    for i in range(len(edges)): # this does the i portions
-        lowestNumber = math.inf
-        for j in range(len(edges)):
-            if lowestCostMatrix[i][j] < lowestNumber:
-                lowestNumber = lowestCostMatrix[i][j]
-        sum += lowestNumber
-        for j in range(len(edges)):
-            lowestCostMatrix[i][j] -= lowestNumber
-
-    for j in range(len(edges)):
-        lowestNumber = math.inf
-        for i in range(len(edges)):
-            if lowestCostMatrix[i][j] < lowestNumber:
-                lowestNumber = lowestCostMatrix[i][j]
-        sum += lowestNumber
-        for j in range(len(edges)):
-            lowestCostMatrix[i][j] -= lowestNumber
-
-
-    #OK SO YOU DO WEIRD STUFF
-    # Once you have left node 1, you will never use it again, so we can make a bunch of stuff infinity
-    # and you can delete all teh ingoing states from 2 (assuming we are going frmo 1 to 2)
-
-    #then update your rows and columns
-    # so make that fetcher a function and make it possible to throw him in (we need to be able to
-    # so just update teh whole matrix to find the "new" lower cost
-    # so turn taht above thing into a function and go from there
-
-    # and you will need to store those reduced cost matricies for different states (I suggest doing a dictinoary IG, or IG we could put it on the stack. that owuld be fetched)
-    # partial path, cost, matrix (need all 3 of these to know where we are adn where we are going)
-    # we infinitize the row 1 (becuase we leave row 1) and we finitize column 3 (because we netered row 3)
-
-    # after we update the reduced cost matrix, update the max cost by finding the lowest possible cost on every node that is left
-    # if the lowest cost is infinity on any of the nodes, break and don't add him to teh stack becuase he is NOT worht it.
-
-    # update the best solution adn make sure that the best cost is still teh lowest.
-    # once the queue is empty we are retuning optimal
-    # branch and bound will also give us a timer and we will be taking advantage of that.
-
-    # we need a way to KNOW which rows I carea bout and which ones I dont
-    # if we get an infity of a row or a column that I care about, thats a problem
-    # but if i get a real answer we can keep going.
-
-
-
-    graph = {} # gets me a graph in a way that makes sense
-    for i in range(len(edges)):
-        for j in range(len(edges)):
-            if edges[i][j] != math.inf and i != j:
-                if i not in graph:
-                    graph[i] = [j]
-                else:
-                    graph[i].append(j)
-
-    for node in graph:
-        distance[node] = math.inf
-        previous[node] = None
-
+    #
+    lowestCostMatrix, leastCost = create_lowest_cost_matrix(initial_state)
 
     while True:
         stack = []
         if timer.time_out():
             return stats
 
-        stack.append([0]) # always start from city 0
+        # TAKE AWAY THE +1
+        newObject = dataStructure(initial_state, leastCost, [0])
+        stack.append(newObject) # always start from city 0
 
         while stack:
-            possible_route = stack.pop()
-            node_to_test = possible_route[-1] # looks at the node on the top
-            for neighbor in graph.get(node_to_test, []):
-                new_route = possible_route.copy()
-                if neighbor not in possible_route:
-                    new_route.append(neighbor)
-                    if len(new_route) == len(edges):
-                        add_stats(new_route, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer)
+            newObject = stack.pop()
 
-                    stack.append(new_route)
+            current_route = newObject.get_latest_node()
+            node_to_test = current_route[-1]
 
+            lowestCostMatrix = newObject.get_lowest_cost_matrix()
+            current_cost = newObject.get_current_cost()
+
+            for j in range(len(lowestCostMatrix)):
+                if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
+                    new_cost = lowestCostMatrix[node_to_test][j] + current_cost
+                    if new_cost < BSSF:
+
+                        new_route = current_route.copy()
+                        new_route.append(j)
+                        if len(new_route) == len(lowestCostMatrix):
+                            add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer)
+                            BSSF = new_cost
+                        else:
+                            lowestCostMatrix, sum = create_lowest_cost_matrix(lowestCostMatrix, node_to_test, j, new_cost)
+                            newObject = dataStructure(lowestCostMatrix, sum, new_route)
+                            stack.append(newObject)
+
+                    # else we prune him. he does not get to know on the stack.
         break
 
     if not stats:
@@ -347,6 +309,89 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             cut_tree.fraction_leaves_covered()
         )]
     return stats
+
+
+def add_stats_simple(tour, stats, cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer):
+    if cost != math.inf:
+
+        if stats:
+            if cost < stats[-1].score:  # only add it to stats if it is a lower score
+                stats.append(SolutionStats(
+                    tour=tour,
+                    score=cost,
+                    time=timer.time(),
+                    max_queue_size=1,
+                    n_nodes_expanded=n_nodes_expanded,
+                    n_nodes_pruned=n_nodes_pruned,
+                    n_leaves_covered=cut_tree.n_leaves_cut(),
+                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+                ))
+        else:
+            stats.append(SolutionStats(
+                tour=tour,
+                score=cost,
+                time=timer.time(),
+                max_queue_size=1,
+                n_nodes_expanded=n_nodes_expanded,
+                n_nodes_pruned=n_nodes_pruned,
+                n_leaves_covered=cut_tree.n_leaves_cut(),
+                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+            ))
+
+
+def create_lowest_cost_matrix(lowestCostMatrix, row=None, column=None, newCost=0):
+
+    # note that the row is where we are comeing FROM, and the column is where we are going TO.
+
+    # this isn't done on initiation but is done everywhere else.
+    #updates our cognates (can't take that same edge again)
+    if row is not None and column is not None:
+        lowestCostMatrix[row][column] = math.inf
+        lowestCostMatrix[column][row] = math.inf
+
+        # turns our rows and columns to 0 like we did on the homework
+        i = row
+        for j in range(len(lowestCostMatrix)):
+            lowestCostMatrix[i][j] = math.inf
+
+        i = column
+        for j in range(len(lowestCostMatrix)):
+            lowestCostMatrix[j][i] = math.inf
+
+    # actually does all the row reduction after we cancel out our rows and columns.
+    if newCost == 0:
+        sum = 0
+    else:
+        sum = newCost
+
+
+    for i in range(len(lowestCostMatrix)): # this does the i portions
+        lowestNumber = math.inf
+        for j in range(len(lowestCostMatrix)):
+            if lowestCostMatrix[i][j] < lowestNumber:
+                lowestNumber = lowestCostMatrix[i][j]
+
+        if lowestNumber != math.inf:
+            sum += lowestNumber
+
+        for j in range(len(lowestCostMatrix)):
+            if lowestCostMatrix[i][j] != math.inf:
+                lowestCostMatrix[i][j] -= lowestNumber
+
+    for j in range(len(lowestCostMatrix)):
+        lowestNumber = math.inf
+        for i in range(len(lowestCostMatrix)):
+            if lowestCostMatrix[i][j] < lowestNumber:
+                lowestNumber = lowestCostMatrix[i][j]
+
+        if lowestNumber != math.inf:
+            sum += lowestNumber
+
+        for i in range(len(lowestCostMatrix)):
+            if lowestCostMatrix[i][j] != math.inf:
+                lowestCostMatrix[i][j] -= lowestNumber
+
+    return lowestCostMatrix, sum
 
 
 def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
