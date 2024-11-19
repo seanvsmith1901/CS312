@@ -176,69 +176,27 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
 
-        stack.append(0) # always start from city 0
-        # while stack:
-        #     node = stack[-1]
-        #     if node not in tour:
-        #         if len(tour) == len(edges) - 1:
-        #             tour.append(node)
-        #             add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer)
-        #             tour.pop()
-        #         child = False
-        #         for neighbor in graph.get(node, []):
-        #             if neighbor not in tour:
-        #                 child = True
-        #                 stack.append(neighbor)
-        #
-        #
-        #
-        #
-        #         if child:
-        #             tour.append(node)
-        #         else:
-        #             stack.pop()
+        stack.append([0]) # always start from city 0
+        # pretty sure all of this is wrong
+        # use child paths instead
+
+
+        while stack:
+            possible_route = stack.pop()
+            node_to_test = possible_route[-1] # looks at the node on the top
+            for neighbor in graph.get(node_to_test, []):
+                new_route = possible_route.copy()
+                if neighbor not in possible_route:
+                    new_route.append(neighbor)
+                    if len(new_route) == len(edges):
+                        add_stats(new_route, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer)
+
+                    stack.append(new_route)
+
+        break
 
 
 
-        if len(tour) == len(edges):
-            cost = score_tour(tour, edges)
-
-            if math.isinf(cost):
-                n_nodes_pruned += 1
-                cut_tree.cut(tour)
-                currentNode += 1
-                continue
-
-            if stats and cost > stats[-1].score:
-                n_nodes_pruned += 1
-                cut_tree.cut(tour)
-                continue
-
-            if stats:
-                if cost > stats[-1].score: # only add it to stats if it is a lower score
-                    stats.append(SolutionStats(
-                        tour=tour,
-                        score=cost,
-                        time=timer.time(),
-                        max_queue_size=1,
-                        n_nodes_expanded=n_nodes_expanded,
-                        n_nodes_pruned=n_nodes_pruned,
-                        n_leaves_covered=cut_tree.n_leaves_cut(),
-                        fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-                    ))
-                else:
-                    pass # do nothing
-            else:
-                stats.append(SolutionStats(
-                    tour=tour,
-                    score=cost,
-                    time=timer.time(),
-                    max_queue_size=1,
-                    n_nodes_expanded=n_nodes_expanded,
-                    n_nodes_pruned=n_nodes_pruned,
-                    n_leaves_covered=cut_tree.n_leaves_cut(),
-                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-                ))
 
     if not stats:
         return [SolutionStats(
@@ -261,6 +219,7 @@ def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, ti
         if math.isinf(cost):
             n_nodes_pruned += 1
             cut_tree.cut(tour)
+            return
 
 
 
@@ -269,7 +228,7 @@ def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, ti
             cut_tree.cut(tour)
 
         if stats:
-            if cost > stats[-1].score:  # only add it to stats if it is a lower score
+            if cost < stats[-1].score:  # only add it to stats if it is a lower score
                 stats.append(SolutionStats(
                     tour=tour,
                     score=cost,
