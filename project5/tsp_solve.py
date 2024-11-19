@@ -170,6 +170,7 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     while True:
         tour = []
         stack = []
+        child = False
         if timer.time_out():
             return stats
 
@@ -179,13 +180,24 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
         while stack:
             node = stack[-1]
             if node not in tour:
-                tour.append(node)
-
+                if len(tour) == len(edges) - 1:
+                    tour.append(node)
+                    add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer)
+                    tour.pop()
+                child = False
                 for neighbor in graph.get(node, []):
                     if neighbor not in tour:
+                        child = True
                         stack.append(neighbor)
-            else:
-                stack.pop()
+
+
+
+
+                if child:
+                    tour.append(node)
+                else:
+                    stack.pop()
+
 
 
         if len(tour) == len(edges):
@@ -240,6 +252,48 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             cut_tree.fraction_leaves_covered()
         )]
     return stats
+
+
+def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer):
+    if len(tour) == len(edges):
+        cost = score_tour(tour, edges)
+
+        if math.isinf(cost):
+            n_nodes_pruned += 1
+            cut_tree.cut(tour)
+
+
+
+        if stats and cost > stats[-1].score:
+            n_nodes_pruned += 1
+            cut_tree.cut(tour)
+
+        if stats:
+            if cost > stats[-1].score:  # only add it to stats if it is a lower score
+                stats.append(SolutionStats(
+                    tour=tour,
+                    score=cost,
+                    time=timer.time(),
+                    max_queue_size=1,
+                    n_nodes_expanded=n_nodes_expanded,
+                    n_nodes_pruned=n_nodes_pruned,
+                    n_leaves_covered=cut_tree.n_leaves_cut(),
+                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+                ))
+            else:
+                pass  # do nothing
+        else:
+            stats.append(SolutionStats(
+                tour=tour,
+                score=cost,
+                time=timer.time(),
+                max_queue_size=1,
+                n_nodes_expanded=n_nodes_expanded,
+                n_nodes_pruned=n_nodes_pruned,
+                n_leaves_covered=cut_tree.n_leaves_cut(),
+                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+            ))
+
 
 
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
