@@ -35,12 +35,19 @@ def assert_valid_tours(edges, stats):
 
 @max_score(5)
 def test_greedy():
+    # graph = [
+    #     [0, 9, inf, 8, inf],
+    #     [inf, 0, 4, inf, 2],
+    #     [inf, 3, 0, 4, inf],
+    #     [inf, 6, 7, 0, 12],
+    #     [1, inf, inf, 10, 0]
+    # ]
+
     graph = [
-        [0, 9, inf, 8, inf],
-        [inf, 0, 4, inf, 2],
-        [inf, 3, 0, 4, inf],
-        [inf, 6, 7, 0, 12],
-        [1, inf, inf, 10, 0]
+        [inf, 7, 3, 12],
+        [3, inf, 6, 14],
+        [5, 8, inf, 6],
+        [9, 3, 5, inf],
     ]
     timer = Timer(10)
     stats = greedy_tour(graph, timer)
