@@ -177,26 +177,26 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
 
         stack.append(0) # always start from city 0
-        while stack:
-            node = stack[-1]
-            if node not in tour:
-                if len(tour) == len(edges) - 1:
-                    tour.append(node)
-                    add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer)
-                    tour.pop()
-                child = False
-                for neighbor in graph.get(node, []):
-                    if neighbor not in tour:
-                        child = True
-                        stack.append(neighbor)
-
-
-
-
-                if child:
-                    tour.append(node)
-                else:
-                    stack.pop()
+        # while stack:
+        #     node = stack[-1]
+        #     if node not in tour:
+        #         if len(tour) == len(edges) - 1:
+        #             tour.append(node)
+        #             add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer)
+        #             tour.pop()
+        #         child = False
+        #         for neighbor in graph.get(node, []):
+        #             if neighbor not in tour:
+        #                 child = True
+        #                 stack.append(neighbor)
+        #
+        #
+        #
+        #
+        #         if child:
+        #             tour.append(node)
+        #         else:
+        #             stack.pop()
 
 
 
