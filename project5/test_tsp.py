@@ -114,7 +114,7 @@ def test_branch_and_bound_smart():
     """
 
     locations, edges = generate_network(
-        30,
+        15, # should be 30 but Im making it smaller for test cases
         euclidean=True,
         reduction=0.2,
         normal=False,

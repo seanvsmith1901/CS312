@@ -288,9 +288,11 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
 
                         new_route = copy.deepcopy(current_route)
                         new_route.append(j)
+
                         if len(new_route) == len(lowestCostMatrix):
-                            add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer)
-                            BSSF = new_cost
+                            if edges[j][node_to_test] != math.inf:
+                                add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer)
+                                BSSF = new_cost
                         else:
                             newlowestCostMatrix = copy.deepcopy(lowestCostMatrix) # I don't want it to edit previous iterations of the matrix
                             newlowestCostMatrix, sum = create_lowest_cost_matrix(newlowestCostMatrix, node_to_test, j, new_cost)
@@ -457,7 +459,8 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
                         else:
                             newlowestCostMatrix = copy.deepcopy(lowestCostMatrix) # I don't want it to edit previous iterations of the matrix
                             newlowestCostMatrix, sum = create_lowest_cost_matrix(newlowestCostMatrix, node_to_test, j, new_cost)
-                            newObject = dataStructure(newlowestCostMatrix, sum, new_route) # new cost for prio?
+                            priority = sum * (len(newlowestCostMatrix) - len(new_route))
+                            newObject = dataStructure(newlowestCostMatrix, sum, new_route, priority) # new cost for prio?
                             heap.put(newObject)
 
                     # else we prune him. he does not get to know on the stack.

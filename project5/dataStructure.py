@@ -4,7 +4,7 @@ class dataStructure:
         self.lowestCostMatrix = lowestCostMatrix
         self.currentCost = currentCost
         self.current_path = currentPath
-        #self.priority = priority
+        self.priority = priority
 
     def get_latest_node(self):
         return self.current_path
