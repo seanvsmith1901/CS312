@@ -163,12 +163,13 @@ def test_extra_credit_branch_and_bound_smart():
 #     - B&B should find a better score than greedy (on this graph).
 #     """
 #
-#     edges = [
-#         [inf, 7, 3, 12],
-#         [3, inf, 6, 14],
-#         [5, 8, inf, 6],
-#         [9, 3, 5, inf],
-#     ]
+#     locations, edges = generate_network(
+#         15,
+#         euclidean=True,
+#         reduction=0.2,
+#         normal=False,
+#         seed=312,
+#     )
 #
 #     timer = Timer(5)
 #     greedy_stats = greedy_tour(edges, timer)
@@ -176,8 +177,28 @@ def test_extra_credit_branch_and_bound_smart():
 #     assert_valid_tours(edges, greedy_stats)
 #
 #     timer = Timer(120)
-#     stats = branch_and_bound(edges, timer)
+#     stats = branch_and_bound_smart(edges, timer)
 #     assert not timer.time_out()
 #     assert_valid_tours(edges, stats)
 #
-#     assert stats[-1].score < greedy_stats[-1].score+1
+#     assert stats[-1].score < greedy_stats[-1].score
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # edges = [
+    #     [inf, 7, 3, 12],
+    #     [3, inf, 6, 14],
+    #     [5, 8, inf, 6],
+    #     [9, 3, 5, inf],
+    # ]
+

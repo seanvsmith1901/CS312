@@ -1,5 +1,7 @@
 import math
 import random
+import queue
+from queue import PriorityQueue
 
 from tsp_core import Tour, SolutionStats, Timer, score_tour, Solver
 from tsp_cuttree import CutTree
@@ -284,14 +286,15 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
                     new_cost = lowestCostMatrix[node_to_test][j] + current_cost
                     if new_cost < BSSF:
 
-                        new_route = current_route.copy()
+                        new_route = copy.deepcopy(current_route)
                         new_route.append(j)
                         if len(new_route) == len(lowestCostMatrix):
                             add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer)
                             BSSF = new_cost
                         else:
-                            lowestCostMatrix, sum = create_lowest_cost_matrix(lowestCostMatrix, node_to_test, j, new_cost)
-                            newObject = dataStructure(lowestCostMatrix, sum, new_route)
+                            newlowestCostMatrix = copy.deepcopy(lowestCostMatrix) # I don't want it to edit previous iterations of the matrix
+                            newlowestCostMatrix, sum = create_lowest_cost_matrix(newlowestCostMatrix, node_to_test, j, new_cost)
+                            newObject = dataStructure(newlowestCostMatrix, sum, new_route)
                             stack.append(newObject)
 
                     # else we prune him. he does not get to know on the stack.
@@ -368,27 +371,27 @@ def create_lowest_cost_matrix(lowestCostMatrix, row=None, column=None, newCost=0
     for i in range(len(lowestCostMatrix)): # this does the i portions
         lowestNumber = math.inf
         for j in range(len(lowestCostMatrix)):
-            if lowestCostMatrix[i][j] < lowestNumber:
+            if lowestCostMatrix[i][j] < lowestNumber and i != j:
                 lowestNumber = lowestCostMatrix[i][j]
 
         if lowestNumber != math.inf:
             sum += lowestNumber
 
         for j in range(len(lowestCostMatrix)):
-            if lowestCostMatrix[i][j] != math.inf:
+            if lowestCostMatrix[i][j] != math.inf and i != j:
                 lowestCostMatrix[i][j] -= lowestNumber
 
     for j in range(len(lowestCostMatrix)):
         lowestNumber = math.inf
         for i in range(len(lowestCostMatrix)):
-            if lowestCostMatrix[i][j] < lowestNumber:
+            if lowestCostMatrix[i][j] < lowestNumber and i != j:
                 lowestNumber = lowestCostMatrix[i][j]
 
         if lowestNumber != math.inf:
             sum += lowestNumber
 
         for i in range(len(lowestCostMatrix)):
-            if lowestCostMatrix[i][j] != math.inf:
+            if lowestCostMatrix[i][j] != math.inf and i != j:
                 lowestCostMatrix[i][j] -= lowestNumber
 
     return lowestCostMatrix, sum
@@ -404,6 +407,75 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
     # the goal is always better than greedy.
     # how do I want to set my priority queue?
     # (something something A* something something)
+
+
+
+
+    initial_state = copy.deepcopy(edges)
+
+    stats = []
+    n_nodes_expanded = 0
+    n_nodes_pruned = 0
+    cut_tree = CutTree(len(initial_state))
+
+
+    BSSF = (greedy_tour(initial_state, timer))[0].score # this exists ENTIRELY FOR testing so don't look at it too hard
+
+    # DO ROWS THEN EDGES FOR THE LOWEST COST EDGES
+    #
+    lowestCostMatrix, leastCost = create_lowest_cost_matrix(initial_state)
+
+    while True:
+        heap = PriorityQueue()
+        if timer.time_out():
+            return stats
+
+        # TAKE AWAY THE +1
+        newObject = dataStructure(initial_state, leastCost, [0])
+        priority = 0
+        heap.put(newObject) # always start from city 0
+
+        while heap:
+            newObject = heap.get()
+
+            current_route = newObject.get_latest_node()
+            node_to_test = current_route[-1]
+
+            lowestCostMatrix = newObject.get_lowest_cost_matrix()
+            current_cost = newObject.get_current_cost()
+
+            for j in range(len(lowestCostMatrix)):
+                if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
+                    new_cost = lowestCostMatrix[node_to_test][j] + current_cost
+                    if new_cost < BSSF:
+
+                        new_route = copy.deepcopy(current_route)
+                        new_route.append(j)
+                        if len(new_route) == len(lowestCostMatrix):
+                            add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer)
+                            BSSF = new_cost
+                        else:
+                            newlowestCostMatrix = copy.deepcopy(lowestCostMatrix) # I don't want it to edit previous iterations of the matrix
+                            newlowestCostMatrix, sum = create_lowest_cost_matrix(newlowestCostMatrix, node_to_test, j, new_cost)
+                            newObject = dataStructure(newlowestCostMatrix, sum, new_route) # new cost for prio?
+                            heap.put(newObject)
+
+                    # else we prune him. he does not get to know on the stack.
+        break
+
+    if not stats:
+        return [SolutionStats(
+            [],
+            math.inf,
+            timer.time(),
+            1,
+            n_nodes_expanded,
+            n_nodes_pruned,
+            cut_tree.n_leaves_cut(),
+            cut_tree.fraction_leaves_covered()
+        )]
+    return stats
+
 
 
     return []
