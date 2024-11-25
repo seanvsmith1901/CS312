@@ -84,5 +84,5 @@ if __name__ == '__main__':
         reduction=0.2,
         normal=False,
         seed=312,
-        timeout=60
+        timeout=10
     )

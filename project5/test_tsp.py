@@ -115,7 +115,7 @@ def test_branch_and_bound_smart():
         euclidean=True,
         reduction=0.2,
         normal=False,
-        seed=312,
+        seed=222,
     )
 
     timer = Timer(10)

@@ -251,6 +251,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     n_nodes_pruned = 0
     cut_tree = CutTree(len(initial_state))
     max_queue_size = 0
+
     current_tour = greedy_tour(edges, timer)
     BSSF = current_tour[0].score # this exists ENTIRELY FOR testing so don't look at it too hard
     #add_stats_simple(current_tour[0].tour, stats, BSSF, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
@@ -258,6 +259,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     lowestCostMatrix, leastCost = create_lowest_cost_matrix(initial_state)
 
     stack = []
+
     newObject = dataStructure(initial_state, leastCost, [0])
     stack.append(newObject) # always start from city 0
 
@@ -265,43 +267,43 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     while stack:
         if len(stack) > max_queue_size: # just to check our max size
             max_queue_size = len(stack)
-        if timer.time_out():
-            return stats
+        if timer.time_out(): return stats
 
         newObject = stack.pop()
 
-        current_route = newObject.get_latest_node()
-        node_to_test = current_route[-1]
-
-        lowestCostMatrix = newObject.get_lowest_cost_matrix()
         current_cost = newObject.get_current_cost()
 
-        for j in range(len(initial_state)):
-            if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
-                new_cost = lowestCostMatrix[node_to_test][j] + current_cost
-                if new_cost < BSSF:
+        if current_cost < BSSF:
+            current_route = newObject.get_latest_node()
+            node_to_test = current_route[-1]
+            lowestCostMatrix = newObject.get_lowest_cost_matrix()
 
-                    new_route = copy.deepcopy(current_route)
-                    new_route.append(j)
+            for j in range(len(initial_state)):
+                if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
+                    new_cost = lowestCostMatrix[node_to_test][j] + current_cost
 
-                    if len(new_route) == len(lowestCostMatrix):
-                        if edges[j][node_to_test] != math.inf:
-                            add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
-                            BSSF = new_cost
-                    else:
-                        newLowestCostMatrix = copy.deepcopy(lowestCostMatrix) # I don't want it to edit previous iterations of the matrix
-                        newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j, new_cost)
-                        if sum < BSSF:
+                    if new_cost < BSSF:
 
-                            newObject = dataStructure(newlowestCostMatrix, sum, new_route)
-                            stack.append(newObject)
+                        new_route = copy.deepcopy(current_route)
+                        new_route.append(j)
+
+                        if len(new_route) == len(lowestCostMatrix):
+                            if edges[j][node_to_test] != math.inf:
+                                add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree,
+                                                 timer, max_queue_size)
+                                BSSF = new_cost
                         else:
-                            cut_tree.cut(new_route)
-                            n_nodes_pruned += 1
-                else:
-                    n_nodes_pruned += 1
-            else:
-                cut_tree.cut(current_route)
+                            newLowestCostMatrix = copy.deepcopy(lowestCostMatrix)
+                            newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j,
+                                                                                 new_cost)
+                            if sum < BSSF:
+                                newObject = dataStructure(newlowestCostMatrix, sum, new_route)
+                                stack.append(newObject)
+                            # else:
+                            #     cut_tree.cut(new_route)
+                            #     n_nodes_pruned += 1
+
+
 
                 # else we prune him. he does not get to know on the stack.
 
