@@ -42,7 +42,6 @@ def test_greedy():
         [inf, 6, 7, 0, 12],
         [1, inf, inf, 10, 0]
     ]
-
     timer = Timer(10)
     stats = greedy_tour(graph, timer)
     assert_valid_tours(graph, stats)
@@ -63,8 +62,6 @@ def test_dfs():
         [1, inf, inf, 10, 0]
     ]
     timer = Timer(10)
-
-
     stats = dfs(graph, timer)
     assert_valid_tours(graph, stats)
 
@@ -114,18 +111,18 @@ def test_branch_and_bound_smart():
     """
 
     locations, edges = generate_network(
-        30, # should be 30 but Im making it smaller for test cases
+        30,
         euclidean=True,
         reduction=0.2,
         normal=False,
         seed=312,
     )
 
-    timer = Timer(20)
+    timer = Timer(10)
     bnb_stats = branch_and_bound(edges, timer)
     assert_valid_tours(edges, bnb_stats)
 
-    timer = Timer(20)
+    timer = Timer(10)
     stats = branch_and_bound_smart(edges, timer)
     assert_valid_tours(edges, stats)
 
@@ -152,53 +149,3 @@ def test_extra_credit_branch_and_bound_smart():
     # got a score of 7.038 in 10 seconds
     # If you beat this score, you get extra credit
     assert stats[-1].score < 7.039
-
-
-# @max_score(10) # this is just for debugging disregard
-# def test_branch_and_bound():
-#     """
-#     - Greedy should run almost instantly.
-#     - B&B should search the entire space in less than 3 minutes.
-#       (A good implementation should finish in seconds).
-#     - B&B should find a better score than greedy (on this graph).
-#     """
-#
-#     locations, edges = generate_network(
-#         15,
-#         euclidean=True,
-#         reduction=0.2,
-#         normal=False,
-#         seed=312,
-#     )
-#
-#     timer = Timer(5)
-#     greedy_stats = greedy_tour(edges, timer)
-#     assert not timer.time_out()
-#     assert_valid_tours(edges, greedy_stats)
-#
-#     timer = Timer(120)
-#     stats = branch_and_bound_smart(edges, timer)
-#     assert not timer.time_out()
-#     assert_valid_tours(edges, stats)
-#
-#     assert stats[-1].score < greedy_stats[-1].score
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # edges = [
-    #     [inf, 7, 3, 12],
-    #     [3, inf, 6, 14],
-    #     [5, 8, inf, 6],
-    #     [9, 3, 5, inf],
-    # ]
-
