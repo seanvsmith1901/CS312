@@ -159,20 +159,6 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     distance = {}
     cost = {}
 
-    graph = {} # gets me a graph in a way that makes sense
-    for i in range(len(edges)):
-        for j in range(len(edges)):
-            if edges[i][j] != math.inf and i != j:
-                if i not in graph:
-                    graph[i] = [j]
-                else:
-                    graph[i].append(j)
-
-    for node in graph:
-        distance[node] = math.inf
-        previous[node] = None
-
-
     while True:
         stack = []
         if timer.time_out():
@@ -184,16 +170,23 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
             if len(stack) > max_queue_size: # just to check our max size
                 max_queue_size = len(stack)
 
-            possible_route = stack.pop()
-            node_to_test = possible_route[-1] # looks at the node on the top
-            for neighbor in graph.get(node_to_test, []):
-                new_route = possible_route.copy() # normal copy seems to work fine here but we might need to change it
-                if neighbor not in possible_route:
-                    new_route.append(neighbor)
-                    if len(new_route) == len(edges):
-                        add_stats(new_route, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer, max_queue_size)
+            current_route = stack.pop()
+            node_to_test = current_route[-1] # looks at the node on the top
+            for j in range(len(edges)):
+                if (edges[node_to_test][j] != math.inf) and (node_to_test != j) and (
+                        j not in current_route):  # its an edge we can actually travel to
 
-                    stack.append(new_route)
+
+                        new_route = copy.deepcopy(current_route)
+                        new_route.append(j)
+
+                        if len(new_route) == len(edges):
+                            if edges[j][node_to_test] != math.inf and score_tour(new_route, edges) != math.inf:
+                                add_stats(new_route, stats, score_tour(new_route, edges), n_nodes_expanded, n_nodes_pruned, cut_tree, timer,
+                                          max_queue_size)
+
+                        else:
+                            stack.append(new_route)
 
         break
 
@@ -214,46 +207,6 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return stats
 
 
-def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer, max_queue_size):
-    if len(tour) == len(edges):
-        cost = score_tour(tour, edges)
-
-        if math.isinf(cost):
-            n_nodes_pruned += 1
-            cut_tree.cut(tour)
-            return
-
-        if stats and cost > stats[-1].score:
-            n_nodes_pruned += 1
-            cut_tree.cut(tour)
-            return # the cost iss greater we don't want him
-
-        if stats:
-            if cost < stats[-1].score:  # only add it to stats if it is a lower score
-                stats.append(SolutionStats(
-                    tour=tour,
-                    score=cost,
-                    time=timer.time(),
-                    max_queue_size=max_queue_size,
-                    n_nodes_expanded=n_nodes_expanded,
-                    n_nodes_pruned=n_nodes_pruned,
-                    n_leaves_covered=cut_tree.n_leaves_cut(),
-                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-                ))
-        else:
-            stats.append(SolutionStats(
-                tour=tour,
-                score=cost,
-                time=timer.time(),
-                max_queue_size=1,
-                n_nodes_expanded=n_nodes_expanded,
-                n_nodes_pruned=n_nodes_pruned,
-                n_leaves_covered=cut_tree.n_leaves_cut(),
-                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-            ))
-
-
-
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
 
     initial_state = copy.deepcopy(edges)
@@ -265,7 +218,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     max_queue_size = 0
     current_tour = greedy_tour(edges, timer)
     BSSF = current_tour[0].score # this exists ENTIRELY FOR testing so don't look at it too hard
-    add_stats_simple(current_tour[0].tour, stats, BSSF, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
+    add_stats(current_tour[0].tour, stats, BSSF, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
 
     # DO ROWS THEN EDGES FOR THE LOWEST COST EDGES
     #
@@ -300,7 +253,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
 
                         if len(new_route) == len(lowestCostMatrix):
                             if edges[j][node_to_test] != math.inf:
-                                add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
+                                add_stats(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
                                 BSSF = new_cost
                         else:
                             newLowestCostMatrix = copy.deepcopy(lowestCostMatrix) # I don't want it to edit previous iterations of the matrix
@@ -327,7 +280,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     return stats
 
 
-def add_stats_simple(tour, stats, cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size):
+def add_stats(tour, stats, cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size):
     if cost != math.inf:
 
         if stats:
@@ -448,7 +401,7 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
                             new_route.append(j)
                             if len(new_route) == len(lowestCostMatrix): # test for end edge cases
                                 if edges[j][node_to_test] != math.inf:
-                                    add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree,
+                                    add_stats(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree,
                                                      timer, max_queue_size)
                                     BSSF = new_cost
                             else: # its a new, lower cost than our current known best.
