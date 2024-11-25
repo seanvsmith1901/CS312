@@ -87,9 +87,12 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
                 nextNode = None
                 for i in range(len(edges[node])):
                     if i != node and i not in visited: # make sure we avoid the null
+                        n_nodes_expanded += 1
                         if edges[node][i] < currentMin:
                             currentMin = edges[node][i]
                             nextNode = i
+                        else:
+                            n_nodes_pruned += 1
 
                 stack.pop()
                 if nextNode is not None:
@@ -150,6 +153,7 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     n_nodes_expanded = 0
     n_nodes_pruned = 0
     cut_tree = CutTree(len(edges))
+    max_queue_size = 0
     currentNode = 0
     previous = {}
     distance = {}
@@ -177,6 +181,9 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
         stack.append([0]) # always start from city 0
 
         while stack:
+            if len(stack) > max_queue_size: # just to check our max size
+                max_queue_size = len(stack)
+
             possible_route = stack.pop()
             node_to_test = possible_route[-1] # looks at the node on the top
             for neighbor in graph.get(node_to_test, []):
@@ -184,7 +191,7 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
                 if neighbor not in possible_route:
                     new_route.append(neighbor)
                     if len(new_route) == len(edges):
-                        add_stats(new_route, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer)
+                        add_stats(new_route, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer, max_queue_size)
 
                     stack.append(new_route)
 
@@ -207,7 +214,7 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return stats
 
 
-def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer):
+def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer, max_queue_size):
     if len(tour) == len(edges):
         cost = score_tour(tour, edges)
 
@@ -227,7 +234,7 @@ def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, ti
                     tour=tour,
                     score=cost,
                     time=timer.time(),
-                    max_queue_size=1,
+                    max_queue_size=max_queue_size,
                     n_nodes_expanded=n_nodes_expanded,
                     n_nodes_pruned=n_nodes_pruned,
                     n_leaves_covered=cut_tree.n_leaves_cut(),
@@ -255,9 +262,10 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     n_nodes_expanded = 0
     n_nodes_pruned = 0
     cut_tree = CutTree(len(initial_state))
-
-
-    BSSF = (greedy_tour(initial_state, timer))[0].score # this exists ENTIRELY FOR testing so don't look at it too hard
+    max_queue_size = 0
+    current_tour = greedy_tour(edges, timer)
+    BSSF = current_tour[0].score # this exists ENTIRELY FOR testing so don't look at it too hard
+    add_stats_simple(current_tour[0].tour, stats, BSSF, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
 
     # DO ROWS THEN EDGES FOR THE LOWEST COST EDGES
     #
@@ -269,7 +277,8 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         stack.append(newObject) # always start from city 0
 
         while stack:
-
+            if len(stack) > max_queue_size: # just to check our max size
+                max_queue_size = len(stack)
             if timer.time_out():
                 return stats
 
@@ -281,23 +290,25 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             lowestCostMatrix = newObject.get_lowest_cost_matrix()
             current_cost = newObject.get_current_cost()
 
-            for j in range(len(lowestCostMatrix)):
+            for j in range(len(initial_state)):
                 if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
                     new_cost = lowestCostMatrix[node_to_test][j] + current_cost
                     if new_cost < BSSF:
 
-                        new_route = current_route[:]
+                        new_route = copy.deepcopy(current_route)
                         new_route.append(j)
 
                         if len(new_route) == len(lowestCostMatrix):
                             if edges[j][node_to_test] != math.inf:
-                                add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer)
+                                add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
                                 BSSF = new_cost
                         else:
-                            newLowestCostMatrix = [row[:] for row in lowestCostMatrix] # I don't want it to edit previous iterations of the matrix
+                            newLowestCostMatrix = copy.deepcopy(lowestCostMatrix) # I don't want it to edit previous iterations of the matrix
                             newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j, new_cost)
-                            newObject = dataStructure(newlowestCostMatrix, sum, new_route)
-                            stack.append(newObject)
+                            if sum < BSSF:
+
+                                newObject = dataStructure(newlowestCostMatrix, sum, new_route)
+                                stack.append(newObject)
 
                     # else we prune him. he does not get to know on the stack.
         break
@@ -316,7 +327,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     return stats
 
 
-def add_stats_simple(tour, stats, cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer):
+def add_stats_simple(tour, stats, cost, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size):
     if cost != math.inf:
 
         if stats:
@@ -325,7 +336,7 @@ def add_stats_simple(tour, stats, cost, n_nodes_expanded, n_nodes_pruned, cut_tr
                     tour=tour,
                     score=cost,
                     time=timer.time(),
-                    max_queue_size=1,
+                    max_queue_size=max_queue_size,
                     n_nodes_expanded=n_nodes_expanded,
                     n_nodes_pruned=n_nodes_pruned,
                     n_leaves_covered=cut_tree.n_leaves_cut(),
@@ -402,7 +413,7 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
     n_nodes_expanded = 0
     n_nodes_pruned = 0
     cut_tree = CutTree(len(initial_state))
-
+    max_queue_size = 0
 
     BSSF = (greedy_tour(initial_state, timer))[0].score
     lowestCostMatrix, leastCost = create_lowest_cost_matrix(initial_state)
@@ -414,7 +425,8 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
         heap.put(newObject) # we are allowed to start from other cities but I don't want to mess with that yet.
 
         while heap:
-
+            if heap.qsize() > max_queue_size: # just to check our max size
+                max_queue_size = heap.qsize()
             if timer.time_out():
                 return stats
 
@@ -432,15 +444,15 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
                         new_cost = lowestCostMatrix[node_to_test][j] + current_cost
                         if new_cost < BSSF: # if the child has a new lower cost than the known best route
 
-                            new_route = current_route[:]
+                            new_route = copy.deepcopy(current_route)
                             new_route.append(j)
                             if len(new_route) == len(lowestCostMatrix): # test for end edge cases
                                 if edges[j][node_to_test] != math.inf:
                                     add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree,
-                                                     timer)
+                                                     timer, max_queue_size)
                                     BSSF = new_cost
                             else: # its a new, lower cost than our current known best.
-                                newLowestCostMatrix = [row[:] for row in lowestCostMatrix]  # I don't want it to edit previous iterations of the matrix
+                                newLowestCostMatrix = copy.deepcopy(lowestCostMatrix)  # I don't want it to edit previous iterations of the matrix
                                 newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j, new_cost)
                                 if sum < BSSF:
                                     priority = sum * (len(newlowestCostMatrix) - len(new_route))
