@@ -26,7 +26,7 @@ def format_plot_summary(name: str, stats: SolutionStats):
     )
 
 
-def main(n, *find_tours: Solver, timeout=60, **kwargs):
+def main(n, *find_tours: Solver, timeout=5, **kwargs):
     # Generate
     print(f'Generating network of size {n} with args: {kwargs}')
     locations, edges = generate_network(n, **kwargs)
@@ -74,15 +74,15 @@ if __name__ == '__main__':
     from tsp_solve import (random_tour, greedy_tour, dfs, branch_and_bound, branch_and_bound_smart)
 
     main(
-        5,
-        # random_tour,
-        greedy_tour,
-        # dfs,
-        #branch_and_bound,
-        #branch_and_bound_smart,
+        10,
+        random_tour,
+         greedy_tour,
+         dfs,
+         branch_and_bound,
+         branch_and_bound_smart,
         euclidean=True,
         reduction=0.2,
         normal=False,
-        seed=4321,
-        timeout=10
+        seed=312,
+        timeout=60
     )
