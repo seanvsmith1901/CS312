@@ -253,7 +253,7 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     max_queue_size = 0
 
     current_tour = greedy_tour(edges, timer)
-    BSSF = current_tour[0].score # this exists ENTIRELY FOR testing so don't look at it too hard
+    BSSF = current_tour[0].score * 2 # this exists ENTIRELY FOR testing so don't look at it too hard
     #add_stats_simple(current_tour[0].tour, stats, BSSF, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
 
     lowestCostMatrix, leastCost = create_lowest_cost_matrix(initial_state)
@@ -271,38 +271,31 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
 
         newObject = stack.pop()
 
-        current_cost = newObject.get_current_cost()
+        current_cost = newObject.get_current_cost() # prune if the current cost is greater than the known lower bound
 
-        if current_cost < BSSF:
+        if current_cost < BSSF: # make sure we are activley pruning what we pull of off the heap as well, just in case.
             current_route = newObject.get_latest_node()
             node_to_test = current_route[-1]
             lowestCostMatrix = newObject.get_lowest_cost_matrix()
 
-            for j in range(len(initial_state)):
+            for j in range(len(lowestCostMatrix)):
                 if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
                     new_cost = lowestCostMatrix[node_to_test][j] + current_cost
-
-                    if new_cost < BSSF:
+                    if new_cost < BSSF: # if the child has a new lower cost than the known best route
 
                         new_route = copy.deepcopy(current_route)
                         new_route.append(j)
-
-                        if len(new_route) == len(lowestCostMatrix):
+                        if len(new_route) == len(lowestCostMatrix): # test for end edge cases
                             if edges[j][node_to_test] != math.inf:
                                 add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree,
                                                  timer, max_queue_size)
-                                BSSF = new_cost
-                        else:
-                            newLowestCostMatrix = copy.deepcopy(lowestCostMatrix)
-                            newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j,
-                                                                                 new_cost)
+                                BSSF = score_tour(new_route, initial_state) # try that.
+                        else: # its a new, lower cost than our current known best.
+                            newLowestCostMatrix = copy.deepcopy(lowestCostMatrix)  # I don't want it to edit previous iterations of the matrix
+                            newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j, new_cost)
                             if sum < BSSF:
-                                newObject = dataStructure(newlowestCostMatrix, sum, new_route)
+                                newObject = dataStructure(newlowestCostMatrix, sum, new_route)  # new cost for prio?
                                 stack.append(newObject)
-                            # else:
-                            #     cut_tree.cut(new_route)
-                            #     n_nodes_pruned += 1
-
 
 
                 # else we prune him. he does not get to know on the stack.
