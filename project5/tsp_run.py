@@ -79,7 +79,7 @@ if __name__ == '__main__':
          greedy_tour,
          #dfs,
          branch_and_bound,
-         #branch_and_bound_smart,
+         branch_and_bound_smart,
         euclidean=True,
         reduction=0.2,
         normal=False,
