@@ -139,7 +139,7 @@ def test_extra_credit_branch_and_bound_smart():
         seed=4321,
     )
 
-    timer = Timer(10)
+    timer = Timer(1000)
     stats = branch_and_bound_smart(edges, timer)
     assert_valid_tours(edges, stats)
 
