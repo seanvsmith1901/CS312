@@ -203,46 +203,6 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     return stats
 
 
-def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer, max_queue_size):
-    if len(tour) == len(edges):
-        cost = score_tour(tour, edges)
-
-        if math.isinf(cost):
-            n_nodes_pruned += 1
-            cut_tree.cut(tour)
-            return
-
-        if stats and cost > stats[-1].score:
-            n_nodes_pruned += 1
-            cut_tree.cut(tour)
-            return # the cost iss greater we don't want him
-
-        if stats:
-            if cost < stats[-1].score:  # only add it to stats if it is a lower score
-                stats.append(SolutionStats(
-                    tour=tour,
-                    score=cost,
-                    time=timer.time(),
-                    max_queue_size=max_queue_size,
-                    n_nodes_expanded=n_nodes_expanded,
-                    n_nodes_pruned=n_nodes_pruned,
-                    n_leaves_covered=cut_tree.n_leaves_cut(),
-                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-                ))
-        else:
-            stats.append(SolutionStats(
-                tour=tour,
-                score=cost,
-                time=timer.time(),
-                max_queue_size=1,
-                n_nodes_expanded=n_nodes_expanded,
-                n_nodes_pruned=n_nodes_pruned,
-                n_leaves_covered=cut_tree.n_leaves_cut(),
-                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
-            ))
-
-
-
 def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     initial_state = copy.deepcopy(edges)
 
@@ -296,14 +256,6 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         )]
     return stats
 
-def check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF):
-    if initial_state[0][newObject.get_latest_node()] != math.inf:  # test for end edge cases
-        add_stats_simple(newObject.current_path, stats, score_tour(newObject.current_path, initial_state), n_nodes_expanded,
-                         n_nodes_pruned, cut_tree,
-                         timer, max_queue_size)
-        BSSF = newObject.get_current_cost()  # hopefully this works
-    return BSSF
-
 def expansion(newObject, j, stack, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF):
     current_route = newObject.current_path
     node_to_test = current_route[-1]
@@ -320,6 +272,115 @@ def expansion(newObject, j, stack, max_queue_size, n_nodes_expanded, n_nodes_pru
             newOjectPath = dataStructure(newLowestMatrix, new_cost, new_route)  # new cost for prio?
             stack.append(newOjectPath)
 
+
+def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
+    initial_state = copy.deepcopy(edges)
+
+    stats = []
+    n_nodes_expanded = 0
+    n_nodes_pruned = 0
+    cut_tree = CutTree(len(initial_state))
+    max_queue_size = 0
+
+    current_tour = greedy_tour(edges, timer)
+    BSSF = current_tour[0].score
+
+    currentObject = dataStructure(initial_state, 0, [0], 0)
+    newLowestCostMatrix, newCost = currentObject.create_lowest_cost_matrix()
+    newObject = dataStructure(newLowestCostMatrix, newCost, [0], 0)
+
+    stack = PriorityQueue()
+    stack.put(newObject)  # always start from city 0
+
+
+    while stack:
+        if stack.qsize() > max_queue_size:  # just to check our max size
+            max_queue_size = stack.qsize()
+        if timer.time_out(): return
+
+        # get most recent object
+        if stack.queue:
+            newObject = stack.queue.pop()
+            currentCost = newObject.get_current_cost()
+        else:
+            break
+
+        # check for completeness
+        if len(newObject.current_path) == len(initial_state):
+            BSSF = check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nodes_expanded,
+                                  n_nodes_pruned, cut_tree, BSSF)
+
+        # not complete, check for cost
+        if currentCost < BSSF:  # make sure we are activley pruning what we pull of off the heap as well, just in case.
+
+            expansionPriorityQueue(newObject, stack, initial_state, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF)
+
+
+    if not stats:
+        return [SolutionStats(
+            [],
+            math.inf,
+            timer.time(),
+            1,
+            n_nodes_expanded,
+            n_nodes_pruned,
+            cut_tree.n_leaves_cut(),
+            cut_tree.fraction_leaves_covered()
+        )]
+    return stats
+
+
+def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer, max_queue_size):
+    if len(tour) == len(edges):
+        cost = score_tour(tour, edges)
+
+        if math.isinf(cost):
+            n_nodes_pruned += 1
+            cut_tree.cut(tour)
+            return
+
+        if stats and cost > stats[-1].score:
+            n_nodes_pruned += 1
+            cut_tree.cut(tour)
+            return # the cost iss greater we don't want him
+
+        if stats:
+            if cost < stats[-1].score:  # only add it to stats if it is a lower score
+                stats.append(SolutionStats(
+                    tour=tour,
+                    score=cost,
+                    time=timer.time(),
+                    max_queue_size=max_queue_size,
+                    n_nodes_expanded=n_nodes_expanded,
+                    n_nodes_pruned=n_nodes_pruned,
+                    n_leaves_covered=cut_tree.n_leaves_cut(),
+                    fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+                ))
+        else:
+            stats.append(SolutionStats(
+                tour=tour,
+                score=cost,
+                time=timer.time(),
+                max_queue_size=1,
+                n_nodes_expanded=n_nodes_expanded,
+                n_nodes_pruned=n_nodes_pruned,
+                n_leaves_covered=cut_tree.n_leaves_cut(),
+                fraction_leaves_covered=cut_tree.fraction_leaves_covered()
+            ))
+
+
+
+
+def check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF):
+    if initial_state[0][newObject.get_latest_node()] != math.inf:  # test for end edge cases
+        add_stats_simple(newObject.current_path, stats, score_tour(newObject.current_path, initial_state), n_nodes_expanded,
+                         n_nodes_pruned, cut_tree,
+                         timer, max_queue_size)
+        BSSF = newObject.get_current_cost()  # hopefully this works
+    return BSSF
+
+
+
 def expansionPriorityQueue(newObject, heap, initial_state, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF):
     children_to_add = []
     for j in range(len(initial_state)):
@@ -328,20 +389,25 @@ def expansionPriorityQueue(newObject, heap, initial_state, max_queue_size, n_nod
         node_to_test = current_route[-1]
         lowestCostMatrix = newObject.get_lowest_cost_matrix()
 
+
         if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (
                 j not in current_route):  # its an edge we can actually travel to
             new_cost = lowestCostMatrix[node_to_test][j] + newObject.get_current_cost()
 
+
             if new_cost < BSSF:  # if the child has a new lower cost than the known best route
-                new_route = copy.deepcopy(current_route)
+                thisObject = copy.deepcopy(newObject)
+                thisObject.set_current_cost(new_cost) # should update the cost for this object only
+
+                new_route = thisObject.current_path
                 new_route.append(j)
-                newLowestMatrix, newCost = newObject.create_lowest_cost_matrix(node_to_test, j)
-                priority = newCost * (len(newLowestMatrix) - len(new_route))
-                newObject = dataStructure(newLowestMatrix, newCost, new_route, priority)  # new cost for prio?
-                children_to_add.append(newObject)
+                newLowestMatrix, newCost = thisObject.create_lowest_cost_matrix(node_to_test, j)
+                priority = newCost + (10 * (len(newLowestMatrix) - len(new_route)))
+                possibleRoute = dataStructure(newLowestMatrix, newCost, new_route, priority)  # new cost for prio?
+                children_to_add.append(possibleRoute)
 
     children_to_add.sort()
-    for i in range(min(5, len(children_to_add))):
+    for i in range(min(2, len(children_to_add))):
         heap.put(children_to_add[i])
 
 
@@ -375,55 +441,3 @@ def add_stats_simple(tour, stats, cost, n_nodes_expanded, n_nodes_pruned, cut_tr
             ))
 
 
-def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
-    initial_state = copy.deepcopy(edges)
-
-    stats = []
-    n_nodes_expanded = 0
-    n_nodes_pruned = 0
-    cut_tree = CutTree(len(initial_state))
-    max_queue_size = 0
-
-    current_tour = greedy_tour(edges, timer)
-    BSSF = current_tour[0].score
-
-    currentObject = dataStructure(initial_state, 0, [0], 0)
-    newLowestCostMatrix, newCost = currentObject.create_lowest_cost_matrix()
-    newObject = dataStructure(newLowestCostMatrix, newCost, [0], 0)
-
-    stack = PriorityQueue()
-    stack.put(newObject)  # always start from city 0
-
-
-    while stack:
-        if stack.qsize() > max_queue_size:  # just to check our max size
-            max_queue_size = stack.qsize()
-        if timer.time_out(): return
-
-        # get most recent object
-        newObject = stack.queue.pop()
-        currentCost = newObject.get_current_cost()
-
-        # check for completeness
-        if len(newObject.current_path) == len(initial_state):
-            BSSF = check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nodes_expanded,
-                                  n_nodes_pruned, cut_tree, BSSF)
-
-        # not complete, check for cost
-        if currentCost < BSSF:  # make sure we are activley pruning what we pull of off the heap as well, just in case.
-
-            expansionPriorityQueue(newObject, stack, initial_state, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF)
-
-
-    if not stats:
-        return [SolutionStats(
-            [],
-            math.inf,
-            timer.time(),
-            1,
-            n_nodes_expanded,
-            n_nodes_pruned,
-            cut_tree.n_leaves_cut(),
-            cut_tree.fraction_leaves_covered()
-        )]
-    return stats

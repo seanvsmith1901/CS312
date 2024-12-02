@@ -23,6 +23,9 @@ class dataStructure:
     def get_tour(self):
         return self.current_path
 
+    def set_current_cost(self, newCost):
+        self.currentCost = newCost
+
     def create_lowest_cost_matrix(self, row=None, column=None):
 
         lowestCostMatrix = copy.deepcopy(self.lowestCostMatrix)

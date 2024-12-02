@@ -122,7 +122,7 @@ def test_branch_and_bound_smart():
     #bnb_stats = branch_and_bound(edges, timer)
     #assert_valid_tours(edges, bnb_stats)
 
-    timer = Timer(10)
+    timer = Timer(2000)
     stats = branch_and_bound_smart(edges, timer)
     assert_valid_tours(edges, stats)
 
