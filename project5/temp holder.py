@@ -8,101 +8,37 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
     max_queue_size = 0
 
     current_tour = greedy_tour(edges, timer)
-    BSSF = current_tour[0].score  # this exists ENTIRELY FOR testing so don't look at it too hard
-    #add_stats_simple(current_tour[0].tour, stats, BSSF, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
+    BSSF = current_tour[0].score
 
-    lowestCostMatrix, leastCost = create_lowest_cost_matrix(initial_state)
+    currentObject = dataStructure(initial_state, 0, [0], 0)
+    newLowestCostMatrix, newCost = currentObject.create_lowest_cost_matrix()
+    newObject = dataStructure(newLowestCostMatrix, newCost, [0], 0)
 
-
-    heap = PriorityQueue()
-
-    newObject = dataStructure(initial_state, leastCost, [0], math.inf)
-    heap.put(newObject) # we are allowed to start from other cities but I don't want to mess with that yet.
+    stack = PriorityQueue()
+    stack.put(newObject)  # always start from city 0
 
 
-    while heap:
-        if heap.qsize() > max_queue_size: # just to check our max size
-            max_queue_size = heap.qsize()
-        if timer.time_out(): return stats
+    while stack:
+        if stack.qsize() > max_queue_size:  # just to check our max size
+            max_queue_size = stack.qsize()
+        if timer.time_out(): return
 
-        newObject = heap.get()
+        # get most recent object
+        if stack.queue:
+            newObject = stack.queue.pop()
+            currentCost = newObject.get_current_cost()
+        else:
+            break
 
-        current_cost = newObject.get_current_cost() # prune if the current cost is greater than the known lower bound
+        # check for completeness
+        if len(newObject.current_path) == len(initial_state):
+            BSSF = check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nodes_expanded,
+                                  n_nodes_pruned, cut_tree, BSSF)
 
-        if current_cost < BSSF: # make sure we are activley pruning what we pull of off the heap as well, just in case.
-            current_route = newObject.get_latest_node()
-            node_to_test = current_route[-1]
-            lowestCostMatrix = newObject.get_lowest_cost_matrix()
+        # not complete, check for cost
+        if currentCost < BSSF:  # make sure we are activley pruning what we pull of off the heap as well, just in case.
+            expansionPriorityQueue(newObject, stack, initial_state, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF)
 
-            for j in range(len(lowestCostMatrix)):
-                if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
-                    new_cost = lowestCostMatrix[node_to_test][j] + current_cost
-                    if new_cost < BSSF: # if the child has a new lower cost than the known best route
-
-                        new_route = copy.deepcopy(current_route)
-                        new_route.append(j)
-                        if len(new_route) == len(lowestCostMatrix): # test for end edge cases
-                            if edges[j][node_to_test] != math.inf:
-                                add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree,
-                                                 timer, max_queue_size)
-                                BSSF = new_cost
-                        else: # its a new, lower cost than our current known best.
-                            newLowestCostMatrix = copy.deepcopy(lowestCostMatrix)  # I don't want it to edit previous iterations of the matrix
-                            newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j, new_cost)
-                            if sum < BSSF:
-                                priority = sum * (len(newlowestCostMatrix) - len(new_route))
-                                newObject = dataStructure(newlowestCostMatrix, sum, new_route, priority)  # new cost for prio?
-                                heap.put(newObject)
-
-
-
-    #
-    # current_tour = greedy_tour(edges, timer)
-    # BSSF = current_tour[0].score  # this exists ENTIRELY FOR testing so don't look at it too hard
-    # #add_stats_simple(current_tour[0].tour, stats, BSSF, n_nodes_expanded, n_nodes_pruned, cut_tree, timer, max_queue_size)
-    #
-    # lowestCostMatrix, leastCost = create_lowest_cost_matrix(initial_state)
-    #
-    #
-    # heap = PriorityQueue()
-    #
-    # newObject = dataStructure(initial_state, leastCost, [0], math.inf)
-    # heap.put(newObject) # we are allowed to start from other cities but I don't want to mess with that yet.
-    #
-    #
-    # while heap:
-    #     if heap.qsize() > max_queue_size: # just to check our max size
-    #         max_queue_size = heap.qsize()
-    #     if timer.time_out(): return stats
-    #
-    #     newObject = heap.get()
-    #
-    #     current_cost = newObject.get_current_cost() # prune if the current cost is greater than the known lower bound
-    #
-    #     if current_cost < BSSF: # make sure we are activley pruning what we pull of off the heap as well, just in case.
-    #         current_route = newObject.get_latest_node()
-    #         node_to_test = current_route[-1]
-    #         lowestCostMatrix = newObject.get_lowest_cost_matrix()
-    #
-    #         for j in range(len(lowestCostMatrix)):
-    #             if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (j not in current_route): # its an edge we can actually travel to
-    #                 new_cost = lowestCostMatrix[node_to_test][j] + current_cost
-    #                 if new_cost < BSSF: # if the child has a new lower cost than the known best route
-    #
-    #                     new_route = copy.deepcopy(current_route)
-    #                     new_route.append(j)
-    #                     if len(new_route) == len(lowestCostMatrix): # test for end edge cases
-    #                         if edges[j][node_to_test] != math.inf:
-    #                             add_stats_simple(new_route, stats, new_cost, n_nodes_expanded, n_nodes_pruned, cut_tree,
-    #                                              timer, max_queue_size)
-    #                             BSSF = new_cost
-    #                     else: # its a new, lower cost than our current known best.
-    #                         newLowestCostMatrix = copy.deepcopy(lowestCostMatrix)  # I don't want it to edit previous iterations of the matrix
-    #                         newlowestCostMatrix, sum = create_lowest_cost_matrix(newLowestCostMatrix, node_to_test, j, current_cost)
-    #                         if sum < BSSF:
-    #                             priority = sum * (len(newlowestCostMatrix) - len(new_route))
-    #                             newObject = dataStructure(newlowestCostMatrix, sum, new_route, priority)  # new cost for prio?
-    #                             heap.put(newObject)
 
     if not stats:
         return [SolutionStats(
@@ -116,3 +52,33 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
             cut_tree.fraction_leaves_covered()
         )]
     return stats
+
+
+def expansionPriorityQueue(newObject, heap, initial_state, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF):
+    children_to_add = []
+    for j in range(len(initial_state)):
+
+        current_route = newObject.current_path
+        node_to_test = current_route[-1]
+        lowestCostMatrix = newObject.get_lowest_cost_matrix()
+
+
+        if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (
+                j not in current_route):  # its an edge we can actually travel to
+            new_cost = lowestCostMatrix[node_to_test][j] + newObject.get_current_cost()
+
+
+            if new_cost < BSSF:  # if the child has a new lower cost than the known best route
+                thisObject = copy.deepcopy(newObject)
+                thisObject.set_current_cost(new_cost) # should update the cost for this object only
+
+                new_route = thisObject.current_path
+                new_route.append(j)
+                newLowestMatrix, newCost = thisObject.create_lowest_cost_matrix(node_to_test, j)
+                priority = newCost + (10 * (len(newLowestMatrix) - len(new_route)))
+                possibleRoute = dataStructure(newLowestMatrix, newCost, new_route, priority)  # new cost for prio?
+                children_to_add.append(possibleRoute)
+
+    children_to_add.sort()
+    for i in range(min(2, len(children_to_add))):
+        heap.put(children_to_add[i])
