@@ -1,3 +1,4 @@
+import heapq
 import math
 import random
 import queue
@@ -287,22 +288,23 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
 
     current_tour = greedy_tour(edges, timer)
     BSSF = current_tour[0].score
+    starting_node = current_tour[0].tour[0]
 
-    currentObject = dataStructure(initial_state, 0, [0])
+    currentObject = dataStructure(initial_state, 0, [starting_node])
     newLowestCostMatrix, newCost = currentObject.create_lowest_cost_matrix()
-    newObject = dataStructure(newLowestCostMatrix, newCost, [0])
+    newObject = dataStructure(newLowestCostMatrix, newCost, [starting_node])
 
-    stack = []
-    stack.append(newObject) # always start from city 0
+    heap = []
+    heapq.heappush(heap, newObject) # always start from city 0
 
 
-    while stack:
-        if len(stack) > max_queue_size: # just to check our max size
-            max_queue_size = len(stack)
+    while heap:
+        if len(heap) > max_queue_size: # just to check our max size
+            max_queue_size = len(heap)
         if timer.time_out(): return
 
         # get most recent object
-        newObject = stack.pop()
+        newObject = heapq.heappop(heap)
         currentCost = newObject.get_current_cost()
 
 
@@ -312,7 +314,7 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
 
         # not complete, check for cost
         if currentCost < BSSF: # make sure we are activley pruning what we pull of off the heap as well, just in case.
-            expansionPriorityQueue(newObject, initial_state, stack, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF)
+            expansionPriorityQueue(newObject, initial_state, heap, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF)
 
 
     if not stats:
@@ -380,7 +382,7 @@ def check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nod
 
 
 
-def expansionPriorityQueue(newObject, initial_state, stack, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF):
+def expansionPriorityQueue(newObject, initial_state, heap, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF):
     for j in range(len(initial_state)):  # expansion
         current_route = newObject.current_path
         node_to_test = current_route[-1]
@@ -397,8 +399,11 @@ def expansionPriorityQueue(newObject, initial_state, stack, max_queue_size, n_no
                 new_route = copy.deepcopy(current_route)
                 new_route.append(j)
                 newLowestMatrix, newCost = thisObject.create_lowest_cost_matrix(node_to_test, j)
-                newOjectPath = dataStructure(newLowestMatrix, new_cost, new_route)  # new cost for prio?
-                stack.append(newOjectPath)
+                priority = newCost + 10 * (len(initial_state) - len(new_route))
+                newOjectPath = dataStructure(newLowestMatrix, new_cost, new_route, priority)  # new cost for prio?
+                heapq.heappush(heap, newOjectPath)
+
+
 
 
 

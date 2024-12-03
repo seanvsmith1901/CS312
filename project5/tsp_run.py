@@ -83,6 +83,6 @@ if __name__ == '__main__':
         euclidean=True,
         reduction=0.2,
         normal=False,
-        seed=4312,
+        seed=3,
         timeout=60
     )
