@@ -227,7 +227,8 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     while stack:
         if len(stack) > max_queue_size: # just to check our max size
             max_queue_size = len(stack)
-        if timer.time_out(): return
+        if timer.time_out():
+            break
 
         # get most recent object
         newObject = stack.pop()
@@ -270,11 +271,11 @@ def expansion(newObject, initial_state, stack, max_queue_size, n_nodes_expanded,
                 thisObject = copy.deepcopy(newObject)
                 thisObject.set_current_cost(new_cost)
 
-                new_route = copy.deepcopy(current_route)
+                new_route = thisObject.current_path
                 new_route.append(j)
                 newLowestMatrix, newCost = thisObject.create_lowest_cost_matrix(node_to_test, j)
-                newOjectPath = dataStructure(newLowestMatrix, new_cost, new_route)  # new cost for prio?
-                stack.append(newOjectPath)
+                newObjectPath = dataStructure(newLowestMatrix, new_cost, new_route)  # new cost for prio?
+                stack.append(newObjectPath)
 
 
 def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
@@ -290,9 +291,9 @@ def branch_and_bound_smart(edges: list[list[float]], timer: Timer) -> list[Solut
     BSSF = current_tour[0].score
     starting_node = current_tour[0].tour[0]
 
-    currentObject = dataStructure(initial_state, 0, [starting_node])
+    currentObject = dataStructure(initial_state, 0, [0])
     newLowestCostMatrix, newCost = currentObject.create_lowest_cost_matrix()
-    newObject = dataStructure(newLowestCostMatrix, newCost, [starting_node])
+    newObject = dataStructure(newLowestCostMatrix, newCost, [0])
 
     heap = []
     heapq.heappush(heap, newObject) # always start from city 0
