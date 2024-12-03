@@ -66,10 +66,6 @@ def greedy_tour(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
     n_nodes_pruned = 0
     cut_tree = CutTree(len(edges))
     currentNode = 0 # keep track of where we are
-    # so for the adjacency matrix, go through at that i and then look for the lowest value (that isn't itself) and then store it and consult that node
-    # if the lowest cost is inf, then we are fetched, we can prune that tree and we can try again with a differnet one.
-    # also check that for every node that you get on, taht youc an still get off. If you no longer can get off, prune it!
-    # cast it into the fire! destroy it!
 
 
     while True:
@@ -176,8 +172,8 @@ def dfs(edges: list[list[float]], timer: Timer) -> list[SolutionStats]:
                 new_route.append(j)
                 new_cost = score_partial_tour(new_route, edges) # I borrow him :)
                 if new_cost < BSSF:
-                    full_cost = score_tour(new_route, edges)
                     if len(new_route) == len(edges):
+                        full_cost = score_tour(new_route, edges)
                         if full_cost < BSSF:
                             BSSF = full_cost
                             add_stats(new_route, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, timer, max_queue_size)
@@ -253,6 +249,17 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
             math.inf,
             timer.time(),
             1,
+            n_nodes_expanded,
+            n_nodes_pruned,
+            cut_tree.n_leaves_cut(),
+            cut_tree.fraction_leaves_covered()
+        )]
+    if stats[-1].score > current_tour[0].score: # if we fail to do better than greedy, we return greedy.
+        return [SolutionStats(
+            current_tour[0].tour,
+            current_tour[0].score,
+            timer.time(),
+            max_queue_size,
             n_nodes_expanded,
             n_nodes_pruned,
             cut_tree.n_leaves_cut(),
