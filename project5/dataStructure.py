@@ -18,7 +18,10 @@ class dataStructure:
         return self.currentCost
 
     def __lt__(self, other):
-        return self.priority < other.priority
+        if self.priority == None:
+            return self.currentCost < other.currentCost
+        else:
+            return self.priority < other.priority
 
     def get_tour(self):
         return self.current_path
