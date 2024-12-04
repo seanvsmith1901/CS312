@@ -2,11 +2,12 @@ import math
 import copy
 
 class dataStructure:
-    def __init__(self, lowestCostMatrix, currentCost, currentPath, priority=None):
+    def __init__(self, lowestCostMatrix, lowerBound, currentCost, currentPath, priority=None):
         self.lowestCostMatrix = lowestCostMatrix
-        self.currentCost = currentCost
+        self.lowerBound = lowerBound
         self.current_path = currentPath
         self.priority = priority
+        self.currentCost = currentCost
 
     def get_latest_node(self):
         return self.current_path[-1]
@@ -16,6 +17,12 @@ class dataStructure:
 
     def get_current_cost(self):
         return self.currentCost
+
+    def getLowestBound(self):
+        return self.lowerBound
+
+    def setLowerBound(self, newLowerBound):
+        self.lowerBound = newLowerBound
 
     def __lt__(self, other):
         if self.priority == None:
@@ -33,7 +40,7 @@ class dataStructure:
 
         lowestCostMatrix = copy.deepcopy(self.lowestCostMatrix)
 
-        sum = self.currentCost
+        sum = self.lowerBound
 
         # updates our cognates (can't take that same edge again)
         if row is not None and column is not None:

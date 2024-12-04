@@ -74,7 +74,7 @@ if __name__ == '__main__':
     from tsp_solve import (random_tour, greedy_tour, dfs, branch_and_bound, branch_and_bound_smart)
 
     main(
-        60,
+        20,
         #random_tour,
          greedy_tour,
          #dfs,

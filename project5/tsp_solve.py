@@ -216,9 +216,9 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
     current_tour = greedy_tour(edges, timer)
     BSSF = current_tour[0].score
 
-    currentObject = dataStructure(initial_state, 0, [0])
+    currentObject = dataStructure(initial_state, 0, 0,[0])
     newLowestCostMatrix, newCost = currentObject.create_lowest_cost_matrix()
-    newObject = dataStructure(newLowestCostMatrix, newCost, [0])
+    newObject = dataStructure(newLowestCostMatrix, newCost, 0, [0])
 
     stack = []
     stack.append(newObject) # always start from city 0
@@ -233,14 +233,14 @@ def branch_and_bound(edges: list[list[float]], timer: Timer) -> list[SolutionSta
         # get most recent object
         newObject = stack.pop()
         currentCost = newObject.get_current_cost()
-
+        lowerBound = newObject.getLowestBound()
 
         # check for completeness
         if len(newObject.current_path) == len(initial_state):
             BSSF = check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF, stack)
 
         # not complete, check for cost
-        if currentCost < BSSF: # make sure we are activley pruning what we pull of off the heap as well, just in case.
+        if lowerBound < BSSF: # make sure we are activley pruning what we pull of off the heap as well, just in case.
             n_nodes_expanded, n_nodes_pruned, BSSF = expansion(newObject, initial_state, stack, n_nodes_expanded, n_nodes_pruned, BSSF)
         else:
             cut_tree.cut(newObject.current_path)
@@ -269,16 +269,18 @@ def expansion(newObject, initial_state, stack, n_nodes_expanded, n_nodes_pruned,
         if (lowestCostMatrix[node_to_test][j] != math.inf) and (node_to_test != j) and (
                 j not in current_route and node_to_test in current_route):  # its an edge we can actually travel to
             new_cost = lowestCostMatrix[node_to_test][j] + newObject.get_current_cost()
+            new_edge_cost = initial_state[node_to_test][j] + newObject.get_current_cost()
 
-            if new_cost < BSSF:  # if the child has a new lower cost than the known best route
+            if new_cost < BSSF and new_edge_cost < BSSF:  # if the child has a new lower cost than the known best route
                 n_nodes_expanded += 1
                 thisObject = copy.deepcopy(newObject)
-                thisObject.set_current_cost(new_cost)
+                thisObject.setLowerBound(new_cost)
+                thisObject.set_current_cost(new_edge_cost)
 
                 new_route = copy.deepcopy(newObject.current_path)
                 new_route.append(j)
                 newLowestMatrix, newCost = thisObject.create_lowest_cost_matrix(node_to_test, j)
-                newObjectPath = dataStructure(newLowestMatrix, new_cost, new_route)  # new cost for prio?
+                newObjectPath = dataStructure(newLowestMatrix, new_cost, new_edge_cost, new_route)  # new cost for prio?
                 stack.append(newObjectPath)
             else:
                 n_nodes_pruned += 1
