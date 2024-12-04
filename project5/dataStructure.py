@@ -2,9 +2,9 @@ import math
 import copy
 
 class dataStructure:
-    def __init__(self, lowestCostMatrix, currentCost, currentPath, priority=None):
+    def __init__(self, lowestCostMatrix, lowerBound, currentPath, priority=None):
         self.lowestCostMatrix = lowestCostMatrix
-        self.currentCost = currentCost
+        self.lowerBound = lowerBound
         self.current_path = currentPath
         self.priority = priority
 
@@ -14,8 +14,8 @@ class dataStructure:
     def get_lowest_cost_matrix(self):
         return self.lowestCostMatrix
 
-    def get_current_cost(self):
-        return self.currentCost
+    def get_lower_bound(self):
+        return self.lowerBound
 
     def __lt__(self, other):
         if self.priority == None:
@@ -26,17 +26,19 @@ class dataStructure:
     def get_tour(self):
         return self.current_path
 
-    def set_current_cost(self, newCost):
-        self.currentCost = newCost
+    def set_lower_bound(self, lowerBound):
+        self.lowerBound = lowerBound
 
     def create_lowest_cost_matrix(self, row=None, column=None):
 
         lowestCostMatrix = copy.deepcopy(self.lowestCostMatrix)
+        sum = 0
+        sum += self.lowerBound
 
-        sum = self.currentCost
 
         # updates our cognates (can't take that same edge again)
         if row is not None and column is not None:
+            sum += lowestCostMatrix[row][column]
             lowestCostMatrix[row][column] = math.inf
             lowestCostMatrix[column][row] = math.inf
 
@@ -58,8 +60,7 @@ class dataStructure:
                     if lowestCostMatrix[i][j] < lowestNumber and i != j:
                         lowestNumber = lowestCostMatrix[i][j]
 
-                if lowestNumber != math.inf:
-                    sum += lowestNumber
+                sum += lowestNumber
 
                 for j in range(len(lowestCostMatrix)):
                     if lowestCostMatrix[i][j] != math.inf and i != j:
@@ -72,8 +73,8 @@ class dataStructure:
                     if lowestCostMatrix[i][j] < lowestNumber and i != j:
                         lowestNumber = lowestCostMatrix[i][j]
 
-                if lowestNumber != math.inf:
-                    sum += lowestNumber
+
+                sum += lowestNumber
 
                 for i in range(len(lowestCostMatrix)):
                     if lowestCostMatrix[i][j] != math.inf and i != j:
