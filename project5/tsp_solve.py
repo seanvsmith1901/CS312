@@ -395,11 +395,12 @@ def add_stats(tour, edges, n_nodes_pruned, stats, n_nodes_expanded, cut_tree, ti
 
 def check_complete(initial_state, newObject, stats, timer, max_queue_size, n_nodes_expanded, n_nodes_pruned, cut_tree, BSSF, heap):
     if initial_state[0][newObject.get_latest_node()] != math.inf:  # test for end edge cases
+        max_queue_size = len(heap)
         add_stats_simple(newObject.current_path, stats, score_tour(newObject.current_path, initial_state), n_nodes_expanded,
                          n_nodes_pruned, cut_tree,
                          timer, max_queue_size)
         BSSF = newObject.get_current_cost()  # hopefully this works
-        max_queue_size = len(heap)
+
     else:
         cut_tree.cut(newObject.current_path)
         n_nodes_pruned += 1
