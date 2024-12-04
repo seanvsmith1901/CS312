@@ -74,15 +74,15 @@ if __name__ == '__main__':
     from tsp_solve import (random_tour, greedy_tour, dfs, branch_and_bound, branch_and_bound_smart)
 
     main(
-        15,
+        50,
         #random_tour,
-         greedy_tour,
+         #greedy_tour,
          #dfs,
-         branch_and_bound,
+         #branch_and_bound,
          branch_and_bound_smart,
         euclidean=True,
         reduction=0.2,
         normal=False,
-        seed=1,
+        seed=4,
         timeout=60
     )
