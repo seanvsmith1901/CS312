@@ -115,7 +115,7 @@ def test_branch_and_bound_smart():
         euclidean=True,
         reduction=0.2,
         normal=False,
-        seed=222,
+        seed=312,
     )
 
     timer = Timer(20)
@@ -127,7 +127,6 @@ def test_branch_and_bound_smart():
     assert_valid_tours(edges, stats)
 
     assert stats[-1].score < bnb_stats[-1].score
-
 
 @max_score(5)
 def test_extra_credit_branch_and_bound_smart():
