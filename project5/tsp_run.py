@@ -74,12 +74,12 @@ if __name__ == '__main__':
     from tsp_solve import (random_tour, greedy_tour, dfs, branch_and_bound, branch_and_bound_smart)
 
     main(
-        60,
+        15,
         #random_tour,
          greedy_tour,
          #dfs,
          branch_and_bound,
-         branch_and_bound_smart,
+         #branch_and_bound_smart,
         euclidean=True,
         reduction=0.2,
         normal=False,
